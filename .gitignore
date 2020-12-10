@@ -1,5 +1,4 @@
 .vscode
 venv
-access-token
+access_token
 *.jwt
-*.txt

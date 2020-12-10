@@ -1,0 +1,12 @@
+certifi==2020.12.5
+cffi==1.14.4
+chardet==3.0.4
+colorama==0.4.4
+cryptography==3.2.1
+fido2==0.8.1
+idna==2.10
+jwt==1.1.0
+pycparser==2.20
+requests==2.25.0
+six==1.15.0
+urllib3==1.26.2

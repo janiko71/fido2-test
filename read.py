@@ -25,16 +25,17 @@ def get_token():
     # Read acces token from file or from command line
     #
 
+    token = None
+
     try:
 
-        with open("access-token", "r") as f:
+        with open("access_token", "r") as f:
             token = f.read()
+        logging.info("Find file containing access token, token is " + Fore.LIGHTWHITE_EX + token)
 
     except FileNotFoundError:
 
         logging.info("No file containing access token, trying to get it from command line")
-
-    logging.info("Find file containing access token, token is " + Fore.LIGHTWHITE_EX + token)
 
     return token
 
@@ -97,7 +98,10 @@ def main(argv):
         token = args.token
         logging.info("Found token in arguments, ignoring access_token file")
     else:
-        token = get_token()      
+        token = get_token()
+        if not(token):
+            logging.error("No token found. Aborting.")
+            sys.exit(2) 
 
     # GO!
     # ---
