@@ -11,7 +11,7 @@ TERM_RESET     = '\033[0m'
 
 # URL of FIDO2 repository
 # ---
-FIDO_URL = "https://ms2.fidoalliance.org/"
+FIDO_URL = "https://mds2.fidoalliance.org/"
 
 # Define your log level
 # ---
