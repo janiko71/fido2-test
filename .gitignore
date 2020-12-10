@@ -1,0 +1,5 @@
+.vscode
+venv
+access-token
+*.jwt
+*.txt
