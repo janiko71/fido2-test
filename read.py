@@ -1,6 +1,13 @@
-import os, sys, logging, getopt
+import os, sys, logging
+import argparse
 import requests, jwt
 import fido2
+
+from colorama import Fore, Back, Style 
+
+# colorama constants
+TERM_UNDERLINE = '\033[04m'
+TERM_RESET     = '\033[0m'
 
 # URL of FIDO2 repository
 # ---
@@ -25,9 +32,9 @@ def get_token():
 
     except FileNotFoundError:
 
-        token = ""
+        logging.info("No file containing access token, trying to get it from command line")
 
-    logging.info("Got token : " + token)
+    logging.info("Find file containing access token, token is " + Fore.RESET + token)
 
     return token
 
@@ -57,28 +64,23 @@ def read_fido2_jwt():
         print(httpe)
 
 
+def parse_args(argv):
+
+    parser = argparse.ArgumentParser(description="ertzrtz")
+    parser.add_argument("-t", "--token", help="token used for FIDO2 repository API call")
+    args = parser.parse_args()
+    logging.info(args)
+
 def main(argv):
 
     # Set log options
     # ---
-    logging.basicConfig(format='%(asctime)s %(message)s', level=LOG_LEVEL)
+    str_format = format=Fore.RESET + '%(asctime)s %(levelname)s ' + Fore.LIGHTWHITE_EX + '%(message)s'
+    logging.basicConfig(format=str_format, level=LOG_LEVEL)
 
     # Arguments
     # ---
-    try:
-
-        opts, args = getopt.getopt(argv,"t",["token="])
-
-    except getopt.GetoptError:
-
-        print("Usage: read.py --token=<token>")
-        sys.exit(2)
-
-    token = None
-    
-    for opt, arg in options:
-        if opt in ('-t', '--token'):
-            token = arg        
+    parse_args(argv)        
 
     # GO!
     # ---
