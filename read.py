@@ -1,5 +1,6 @@
 import os, sys, logging
-import binascii
+import json
+import binascii, base64
 import argparse
 import requests, jwt
 import fido2
@@ -76,6 +77,38 @@ def read_fido2_jwt(token):
         logging.error("Something very bad happened with the API call. " + str(err))
 
 
+def read_device_jwt(url, token):
+
+    #
+    # Call repository for one device
+    #
+
+    curl_url = url + "?token=" + token
+
+    try:
+
+        u = requests.get(curl_url, allow_redirects=True)
+
+        status_code = u.status_code
+        reason      = u.reason
+        content     = u.content
+        logging.info("Status code : " + Fore.LIGHTWHITE_EX + "{} ({})".format(status_code, reason))
+        logging.info("Content lenght (encoded) : {} bytes".format(len(content)))
+
+        if (status_code == 200):
+            # Got an answer, no problem
+            return content
+        elif (status_code == 302):
+            # Redirection, probably the token is not valid anymore
+            logging.warning("The FIDO2 site responded, but the token may be invalid. No data retrieved.")
+        else:
+            logging.error("Something went wrong with the FIDO2 site. No data retrieved.")
+
+    except requests.exceptions.ConnectionError as err:
+
+        logging.error("Something very bad happened with the API call. " + str(err))
+
+
 def parse_args(argv):
 
     #
@@ -90,7 +123,7 @@ def parse_args(argv):
     return args
 
 
-def decode_jwt(data):
+def decode_jwt(data, token):
 
     #
     # Decoding JWT Header
@@ -161,10 +194,12 @@ def decode_jwt(data):
     logging.info("Data | Nb of entries : " + Fore.LIGHTWHITE_EX + str(len(entries)))
 
     for entry in entries:
+
         logging.info("Data | --------------------------------------------------------------------")
         if ('aaid' in entry):
             logging.info("Data | Entry aaid : " + Fore.LIGHTWHITE_EX + "{}".format(entry['aaid']))
         if ('url' in entry):
+            device_url = entry['url']
             logging.info("Data | Entry url : " + Fore.LIGHTWHITE_EX + "{}".format(entry['url']))
         if ('timeOfLastStatusChange' in entry):
             logging.info("Data | Entry last status change : " + Fore.LIGHTWHITE_EX + "{}".format(entry['timeOfLastStatusChange']))
@@ -172,10 +207,26 @@ def decode_jwt(data):
             logging.info("Data | Entry hash : " + Fore.LIGHTWHITE_EX + "{}".format(entry['hash']))
 
         # NEXT STEP: Call URL with token, show information, verify certificate
-
+        device_jwt = read_device_jwt(device_url, token)
+        '''
+        with open("detail.jwt","r") as f:
+            device_jwt = f.read()
+        '''
+        decode_device_jwt(device_jwt)
 
     logging.info("Legal : " + Fore.LIGHTWHITE_EX + jd['legalHeader'])
 
+
+def decode_device_jwt(data):
+
+    #
+    # Decoding JWT Header. Just base64. No payload here.
+    #
+
+    base64_bytes = base64.b64decode(data)
+    device = json.loads(base64_bytes)
+    logging.info("Header | Assertion Scheme : " + Fore.LIGHTWHITE_EX + "{}".format(jh['assertionScheme']))
+    logging.info("Header | Authentication Algorithm : " + Fore.LIGHTWHITE_EX + "{}".format(jh['authenticationAlgorithm']))
 
 
 def main(argv):
@@ -204,10 +255,12 @@ def main(argv):
 
     logging.info("Line command arguments : " + str(argv))
 
-    ###raw_data = read_fido2_jwt(token)
+    #raw_data = read_fido2_jwt(token)
+    #'''
     with open("test.jwt","r") as f:
         raw_data = f.read()
-    decode_jwt(raw_data)
+    #'''
+    decode_jwt(raw_data, token)
 
 
 #
@@ -217,6 +270,8 @@ def main(argv):
 if __name__ == "__main__":
 
     print()
-    main(sys.argv[1:])
-    print(Fore.RESET)
+    try:
+        main(sys.argv[1:])
+    finally:
+        print(Fore.RESET)
 
