@@ -11,6 +11,8 @@ from colorama import Fore, Back, Style
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
+import res.const as const
+
 
 def read_jwt(url, token):
 
@@ -149,6 +151,7 @@ def decode_jwt(data):
 
     device_key = 'verificationMethodDescriptor'
     if (device_key in device):
+        info = const.UserVerificationMethod(device.get(device_key))
         logging.info(str_format.format(device_key, device.get(device_key)))
 
 
@@ -181,7 +184,8 @@ def decode_jwt(data):
 
     device_key = 'matcherProtection'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        info = const.MatcherProtection(device.get(device_key))
+        logging.info(str_format.format(device_key, info))
 
 
     # Key: protocolFamily
@@ -234,7 +238,8 @@ def decode_jwt(data):
 
     device_key = 'keyProtection'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        info = const.KeyProtection(device.get(device_key))
+        logging.info(str_format.format(device_key, info))
 
 
     # Key: cryptoStrength
@@ -260,7 +265,8 @@ def decode_jwt(data):
 
     device_key = 'authenticationAlgorithm'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        info = const.AuthenticationAlgorithms(device.get(device_key))
+        logging.info(str_format.format(device_key, info))
 
 
     # Key: authenticationAlgorithms
@@ -273,7 +279,8 @@ def decode_jwt(data):
 
     device_key = 'authenticationAlgorithms'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        info = const.AuthenticationAlgorithms(device.get(device_key))
+        logging.info(str_format.format(device_key, info))
 
 
     # Key: publicKeyAlgAndEncoding
@@ -285,14 +292,15 @@ def decode_jwt(data):
 
     device_key = 'publicKeyAlgAndEncoding'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        info = const.AuthenticationAlgorithms(device.get(device_key))
+        logging.info(str_format.format(device_key, info))
 
 
     # Key: isFreshUserVerificationRequired
     # ---
     # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-isFreshUserVerificationRequired
     #
-    # If true, user verification is required. Else, it is the responsibility of the App to ask for user consent.If this field is missing, the assumed value is true.
+    # If true, user verification is required. Else, it is the responsibility of the App to ask for user consent. If this field is missing, the assumed value is true.
     #
 
     device_key = 'isFreshUserVerificationRequired'
@@ -310,7 +318,8 @@ def decode_jwt(data):
 
     device_key = 'tcDisplay'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        info = const.tcDisplay(device.get(device_key))
+        logging.info(str_format.format(device_key, info))
 
 
     # Key: tcDisplayContentType
@@ -380,31 +389,6 @@ def decode_jwt(data):
     # of an authenticator may be transient, these values are only hints that can be used by server-supplied policy to guide the user experience, e.g. to prefer a device that is 
     # connected and ready for authenticating or confirming a low-value transaction, rather than one that is more secure but requires more user effort.
     #
-    # ATTACHMENT_HINT_INTERNAL 0x0001
-    #	This flag may be set to indicate that the authenticator is permanently attached to the FIDO User Device.A device such as a smartphone may have authenticator functionality 
-    #   that is able to be used both locally and remotely. In such a case, the FIDO client must filter and exclusively report only the relevant bit during Discovery and when 
-    #   performing policy matching. This flag cannot be combined with any other ATTACHMENT_HINT flags.
-    # ATTACHMENT_HINT_EXTERNAL 0x0002
-    #	This flag may be set to indicate, for a hardware-based authenticator, that it is removable or remote from the FIDO User Device. A device such as a smartphone may 
-    #   have authenticator functionality that is able to be used both locally and remotely. In such a case, the FIDO UAF Client must filter and exclusively report only the 
-    #   relevant bit during discovery and when performing policy matching. This flag must be combined with one or more other ATTACHMENT_HINT flag(s).
-    # ATTACHMENT_HINT_WIRED 0x0004
-    #	This flag may be set to indicate that an external authenticator currently has an exclusive wired connection, e.g. through USB, Firewire or similar, to the FIDO User Device.
-    # ATTACHMENT_HINT_WIRELESS 0x0008
-    #	This flag may be set to indicate that an external authenticator communicates with the FIDO User Device through a personal area or otherwise non-routed wireless protocol, 
-    #   such as Bluetooth or NFC.
-    # ATTACHMENT_HINT_NFC 0x0010
-    #	This flag may be set to indicate that an external authenticator is able to communicate by NFC to the FIDO User Device. As part of authenticator metadata, or when reporting 
-    #   characteristics through discovery, if this flag is set, the ATTACHMENT_HINT_WIRELESS flag should also be set as well.
-    # ATTACHMENT_HINT_BLUETOOTH 0x0020
-    #	This flag may be set to indicate that an external authenticator is able to communicate using Bluetooth with the FIDO User Device. As part of authenticator metadata, or 
-    #   when reporting characteristics through discovery, if this flag is set, the ATTACHMENT_HINT_WIRELESS flag should also be set.
-    # ATTACHMENT_HINT_NETWORK 0x0040
-    #	This flag may be set to indicate that the authenticator is connected to the FIDO User Device over a non-exclusive network (e.g. over a TCP/IP LAN or WAN, as opposed 
-    #   to a PAN or point-to-point connection).
-    # ATTACHMENT_HINT_READY 0x0080
-    #	This flag may be set to indicate that an external authenticator is in a "ready" state. This flag is set by the ASM at its discretion. 
-    #
 
     device_key = 'attachmentHint'
     if (device_key in device):
@@ -445,7 +429,8 @@ def decode_jwt(data):
 
     device_key = 'attestationTypes'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        info = const.AuthenticatorAttestation(device.get(device_key))
+        logging.info(str_format.format(device_key, info))
 
 
     # Key: authenticatorVersion

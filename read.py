@@ -55,8 +55,6 @@ def parse_args(argv):
     return args
 
 
-
-
 def signal_handler(sig, frame):
 
     # Just to prevent verbose aborting
@@ -98,9 +96,6 @@ def main(argv):
     '''
     repository.decode_jwt(raw_data, token)
 
-    print()
-    global gkeys
-    print(gkeys)
 
 
 #
