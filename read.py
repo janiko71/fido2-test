@@ -223,10 +223,11 @@ def decode_device_jwt(data):
     # Decoding JWT Header. Just base64. No payload here.
     #
 
-    base64_bytes = base64.b64decode(data)
+    base64_bytes = base64.b64decode(data, '-_') # Some infos are strangely encoded...
     device = json.loads(base64_bytes)
-    logging.info("Header | Assertion Scheme : " + Fore.LIGHTWHITE_EX + "{}".format(jh['assertionScheme']))
-    logging.info("Header | Authentication Algorithm : " + Fore.LIGHTWHITE_EX + "{}".format(jh['authenticationAlgorithm']))
+    for k in device.keys():
+        str_format = "Device | {} : " + Fore.LIGHTWHITE_EX + "{}"
+        logging.info(str_format.format(k, device.get(k)))
 
 
 def main(argv):
