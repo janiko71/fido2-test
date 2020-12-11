@@ -127,7 +127,7 @@ def decode_jwt(data, token):
         if ('timeOfLastStatusChange' in entry):
             logging.info("Data | Entry last status change : " + Fore.LIGHTWHITE_EX + "{}".format(entry['timeOfLastStatusChange']))
         if ('hash' in entry):
-            logging.info("Data | Entry hash : " + Fore.LIGHTWHITE_EX + "{}".format(entry['hash']))
+            logging.info("Data | Entry hash : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')))
 
         # NEXT STEP: Call URL with token, show information, verify certificate
         device_jwt = device.read_jwt(device_url, token)
