@@ -23,7 +23,8 @@ FIDO_URL = "https://mds2.fidoalliance.org/"
 # ---
 LOG_LEVEL = logging.INFO
 
-
+global gkeys
+gkeys = []
 
 def get_token():
 
@@ -229,6 +230,10 @@ def decode_device_jwt(data):
     device = json.loads(base64_bytes)
 
     str_format = "     | Device {} : " + Fore.LIGHTWHITE_EX + "{}"
+    str_format_red = "     | Device {} : " + Fore.LIGHTRED_EX + "{}"
+
+    global gkeys
+    gkeys = list(set(gkeys + list(set(device.keys()))))
 
     #
     # Displaying information
@@ -249,19 +254,42 @@ def decode_device_jwt(data):
     #   "M" indicates the authenticator Model Code. This code consists of 4 hexadecimal digits.
     #
 
-    key = 'aaid'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'aaid'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
 
-    # Key: description 
+    # Key: aaguid
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-aaguid
+    #     https://fidoalliance.org/specs/fido-v2.0-ps-20150904/fido-key-attestation-v2.0-ps-20150904.html#aaguid-extension
+    #
+    # The Authenticator Attestation GUID. This field must be set if the authenticator implements FIDO 2.
+    # 
+
+    device_key = 'aaguid'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # key: description 
     # ---
     # Human-readable, short description of the authenticator, in English)
     #
 
-    key = 'description'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'description'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # key: alternativeDescriptions 
+    # ---
+    # A list of human-readable short descriptions of the authenticator in different languages.
+    #
+
+    device_key = 'alternativeDescriptions'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
 
     # Key: isSecondFactorOnly
@@ -271,9 +299,46 @@ def decode_device_jwt(data):
     # Indicates if the authenticator is designed to be used only as a second factor, i.e. requiring some other authentication method as a first factor (e.g. username+password).
     #
 
-    key = 'isSecondFactorOnly'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'isSecondFactorOnly'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: operatingEnv
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-operatingEnv
+    #     https://fidoalliance.org/specs/fido-security-requirements-v1.1-fd-20171108/fido-authenticator-allowed-restricted-operating-environments-list-v1.1-fd-20171108.html
+    #
+    # Description of the particular operating environment that is used for the Authenticator.
+    # 
+
+    device_key = 'operatingEnv'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: verificationMethodDescriptor
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#verificationmethoddescriptor-dictionary
+    #
+    # A descriptor for a specific base user verification method as implemented by the authenticator.
+    # 
+
+    device_key = 'verificationMethodDescriptor'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: supportedExtensions
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-supportedExtensions
+    #
+    # List of extensions supported by the authenticator.
+    # 
+
+    device_key = 'supportedExtensions'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
 
     # Key: matcherProtection
@@ -290,9 +355,9 @@ def decode_device_jwt(data):
     #       This flag should be set if the authenticator's matcher is running on the chip. Mutually exclusive in authenticator metadata with MATCHER_PROTECTION_TEE, MATCHER_PROTECTION_SOFTWARE
     # 
 
-    key = 'matcherProtection'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'matcherProtection'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
 
     # Key: protocolFamily
@@ -303,9 +368,9 @@ def decode_device_jwt(data):
     # U2F authenticators must set the value of protocolFamily to "u2f" and FIDO 2.0/WebAuthentication Authenticator implementations must set the value of protocolFamily to "fido2".
     # 
 
-    key = 'protocolFamily'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'protocolFamily'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
 
     # Key: upv
@@ -315,9 +380,100 @@ def decode_device_jwt(data):
     # The FIDO unified protocol version(s) (related to the specific protocol family) supported by this authenticator. See [UAFProtocol] for the definition of the Version structure.
     # 
 
-    key = 'upv'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'upv'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: isKeyRestricted
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-isKeyRestricted
+    #
+    # This entry is set to true, if the Uauth private key is restricted by the authenticator to only sign valid FIDO signature assertions.
+    # This entry is set to false, if the authenticator doesn't restrict the Uauth key to only sign valid FIDO signature assertions. In this case, the calling application 
+    # could potentially get any hash value signed by the authenticator.
+    #
+    # If this field is missing, the assumed value is isKeyRestricted=true
+    # 
+
+    device_key = 'isKeyRestricted'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: keyProtection
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-keyProtection
+    #
+    # A 16-bit number representing the bit fields defined by the KEY_PROTECTION constants in the FIDO Registry of Predefined Values. This value must be non-zero.
+    # 
+
+    device_key = 'keyProtection'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: cryptoStrength
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-cryptoStrength
+    # 
+    # The authenticator's overall claimed cryptographic strength in bits (sometimes also called security strength or security level). This is the minimum 
+    # of the cryptographic strength of all involved cryptographic methods (e.g. RNG, underlying hash, key wrapping algorithm, signing algorithm, attestation 
+    # algorithm), e.g. see [FIPS180-4], [FIPS186-4], [FIPS198-1], [SP800-38B], [SP800-38C], [SP800-38D], [SP800-38F], [SP800-90C], [SP800-90ar1], [FIPS140-2] etc.
+    #
+
+    device_key = 'cryptoStrength'
+    if (device_key in device):
+        logging.info(str_format_red.format(device_key, device.get(device_key)))
+
+
+    # Key: authenticationAlgorithm
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-authenticationAlgorithm
+    # 
+    # The preferred authentication algorithm supported by the authenticator. This value must be non-zero.
+    #
+
+    device_key = 'authenticationAlgorithm'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: authenticationAlgorithms
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-authenticationAlgorithms
+    # 
+    # The list of authentication algorithms supported by the authenticator. Must be set to the complete list of the supported ALG_ constants defined in the FIDO 
+    # Registry of Predefined Values if the authenticator supports multiple algorithms. Each value must be non-zero.
+    #
+
+    device_key = 'authenticationAlgorithms'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: publicKeyAlgAndEncoding
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-publicKeyAlgAndEncodings
+    #
+    # The list of public key formats supported by the authenticator during registration operations. 
+    # 
+
+    device_key = 'publicKeyAlgAndEncoding'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: isFreshUserVerificationRequired
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-isFreshUserVerificationRequired
+    #
+    # If true, user verification is required. Else, it is the responsibility of the App to ask for user consent.If this field is missing, the assumed value is true.
+    #
+
+    device_key = 'isFreshUserVerificationRequired'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
 
     # Key: tcDisplay (transaction confirmation display)
@@ -328,9 +484,10 @@ def decode_device_jwt(data):
     # This value must be 0, if transaction confirmation is not supported by the authenticator.
     #
 
-    key = 'tcDisplay'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'tcDisplay'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
 
     # Key: tcDisplayContentType
     # ---
@@ -340,9 +497,22 @@ def decode_device_jwt(data):
     # This value must be present if transaction confirmation is supported, i.e. tcDisplay is non-zero.
     # 
 
-    key = 'tcDisplayContentType'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'tcDisplayContentType'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: tcDisplayPNGCharacteristics
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-tcDisplayPNGCharacteristics
+    #
+    # A list of alternative DisplayPNGCharacteristicsDescriptor. 
+    # 
+
+    device_key = 'tcDisplayPNGCharacteristics'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
 
     # Key: userVerificationDetails
     # ---
@@ -356,9 +526,9 @@ def decode_device_jwt(data):
     #  - unlock the UAuth key directly after successful user verification
     # 
 
-    key = 'userVerificationDetails'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'userVerificationDetails'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
     # Key: assertionScheme
     # ---
@@ -372,9 +542,9 @@ def decode_device_jwt(data):
     #   - unlock the UAuth key directly after successful user verification
     # 
 
-    key = 'assertionScheme'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'assertionScheme'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
     # Key: attachmentHint
     # ---
@@ -412,21 +582,35 @@ def decode_device_jwt(data):
     #	This flag may be set to indicate that an external authenticator is in a "ready" state. This flag is set by the ASM at its discretion. 
     #
 
-    key = 'attachmentHint'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'attachmentHint'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
 
     # Key: attestationRootCertificates
     # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-attestationRootCertificates
+    #
     # Each element of this array represents a X.509 certificate that is a valid trust anchor for this authenticator model. The array does not represent a certificate chain, but 
     # only the trust anchor of that chain. 
     #
-    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-attestationRootCertificates
-    #
 
-    key = 'attestationRootCertificates'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'attestationRootCertificates'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
+
+    # Key: attestationCertificateKeyIdentifiers
+    # ---
+    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-attestationCertificateKeyIdentifiers
+    #
+    # A list of the attestation certificate public key identifiers encoded as hex string.
+    # 
+
+    device_key = 'attestationCertificateKeyIdentifiers'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
+
 
     # Key: attestationTypes
     # ---
@@ -435,20 +619,10 @@ def decode_device_jwt(data):
     # The supported attestation type(s). (e.g. ATTESTATION_BASIC_FULL(0x3E07), ATTESTATION_BASIC_SURROGATE(0x3E08)).
     # 
 
-    key = 'attestationTypes'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'attestationTypes'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
-    # Key: authenticationAlgorithm
-    # ---
-    # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-authenticationAlgorithm
-    # 
-    # The preferred authentication algorithm supported by the authenticator. This value must be non-zero.
-    #
-
-    key = 'authenticationAlgorithm'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
 
     # Key: authenticatorVersion
     # ---
@@ -457,9 +631,9 @@ def decode_device_jwt(data):
     # Earliest (i.e. lowest) trustworthy authenticatorVersion meeting the requirements specified in this metadata statement.
     # 
 
-    key = 'authenticatorVersion'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
+    device_key = 'authenticatorVersion'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)))
 
     # Key: icon
     # ---
@@ -468,11 +642,12 @@ def decode_device_jwt(data):
     # RFC2397-encoded PNG icon for the Authenticator.
     # 
 
-    key = 'icon'
-    if (key in device):
-        logging.info(str_format.format(key, "found"))
+    device_key = 'icon'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, "found"))
     else:
-        logging.info(str_format.format(key, "not found"))
+        logging.info(str_format.format(device_key, "not found"))
+
 
     # Key: legalHeader
     # ---
@@ -482,18 +657,10 @@ def decode_device_jwt(data):
     # to further information, such as a full Terms and Conditions statement.
     # 
 
-    key = 'legalHeader'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)[:100] + "..."))
+    device_key = 'legalHeader'
+    if (device_key in device):
+        logging.info(str_format.format(device_key, device.get(device_key)[:100] + "..."))
 
-    # Key: publicKeyAlgAndEncoding
-    # ---
-    #
-    # 
-
-    key = 'publicKeyAlgAndEncoding'
-    if (key in device):
-        logging.info(str_format.format(key, device.get(key)))
 
 
 
@@ -537,6 +704,10 @@ def main(argv):
         raw_data = f.read()
     #'''
     decode_jwt(raw_data, token)
+
+    print()
+    global gkeys
+    print(gkeys)
 
 
 #
