@@ -174,13 +174,6 @@ def decode_jwt(data):
     #
     # A 16-bit number representing the bit fields defined by the MATCHER_PROTECTION constants in the FIDO Registry of Predefined Values
     #
-    #   MATCHER_PROTECTION_SOFTWARE 0x0001 
-    #       This flag must be set if the authenticator's matcher is running in software. Exclusive in authenticator metadata with MATCHER_PROTECTION_TEE, MATCHER_PROTECTION_ON_CHIP
-    #   MATCHER_PROTECTION_TEE 0x0002
-    #       This flag should be set if the authenticator's matcher is running inside the Trusted Execution Environment [TEE]. Mutually exclusive in authenticator metadata with MATCHER_PROTECTION_SOFTWARE, MATCHER_PROTECTION_ON_CHIP
-    #   MATCHER_PROTECTION_ON_CHIP 0x0004
-    #       This flag should be set if the authenticator's matcher is running on the chip. Mutually exclusive in authenticator metadata with MATCHER_PROTECTION_TEE, MATCHER_PROTECTION_SOFTWARE
-    # 
 
     device_key = 'matcherProtection'
     if (device_key in device):
@@ -453,7 +446,8 @@ def decode_jwt(data):
 
     device_key = 'icon'
     if (device_key in device):
-        logging.info(str_format.format(device_key, "found"))
+        type = device.get(device_key).split(";")[0]
+        logging.info(str_format.format(device_key, "found (" + type + ")"))
     else:
         logging.info(str_format.format(device_key, "not found"))
 

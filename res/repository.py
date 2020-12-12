@@ -128,6 +128,8 @@ def decode_jwt(data, token):
             logging.info("Data | Entry last status change : " + Fore.LIGHTWHITE_EX + "{}".format(entry['timeOfLastStatusChange']))
         if ('hash' in entry):
             logging.info("Data | Entry hash : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')))
+        if ('statusReports' in entry):
+            analyse_status_report(entry['statusReports'])
 
         # NEXT STEP: Call URL with token, show information, verify certificate
         device_jwt = device.read_jwt(device_url, token)
@@ -139,6 +141,50 @@ def decode_jwt(data, token):
 
     logging.info("Legal : " + Fore.LIGHTWHITE_EX + jd['legalHeader'][:100] + "...")
 
+
+def analyse_status_report(data):
+
+    #
+    # Important part: analyzing status reports. May contain a list. We highlight the most recent.
+    #
+
+    last_date = None
+    most_recent = None
+
+    for certif in data:
+        
+        if last_date == None:
+            most_recent = certif
+        else:
+            this_date = certif['effectiveDate']
+            if (this_date > last_date):
+                most_recent = certif
+
+    if ('status' in most_recent.keys()):
+        # https://fidoalliance.org/specs/fido-uaf-v1.2-rd-20171128/fido-metadata-service-v1.2-rd-20171128.html#authenticatorstatus-enum
+        device_status = certif['status']
+        color = Fore.YELLOW
+        if (device_status in const.GOOD_STATUS):
+            color = Fore.LIGHTGREEN_EX
+        elif (device_status in const.BAD_STATUS):
+            color = Fore.LIGHTRED_EX
+        logging.info("Data | Most recent certif. status : " + color + "{}".format(certif['status']))
+
+    if ('effectiveDate' in most_recent.keys()):
+        logging.info("Data | Most recent certif. date : " + Fore.LIGHTWHITE_EX + "{}".format(certif['effectiveDate']))
+    if ('certificateNumber' in most_recent.keys()):
+        logging.info("Data | Most recent certif. number : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificateNumber']))
+    if ('certificate' in most_recent.keys()):
+        logging.info("Data | Most recent certif. certificate : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificate']))
+    if ('certificationDescriptor' in most_recent.keys()):
+        logging.info("Data | Most recent certif. descriptor : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationDescriptor']))
+    if ('url' in most_recent.keys()):
+        logging.info("Data | Most recent certif. url : " + Fore.LIGHTWHITE_EX + "{}".format(certif['url']))
+    if ('certificationRequirementsVersion' in most_recent.keys()):
+        logging.info("Data | Most recent certif. req.version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationRequirementsVersion']))
+    if ('certificationPolicyVersion' in most_recent.keys()):
+        logging.info("Data | Most recent certif. policy version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationPolicyVersion']))
+    
 
 
 #

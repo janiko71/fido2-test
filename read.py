@@ -66,6 +66,7 @@ def main(argv):
     # ---
     str_format = format=Fore.LIGHTWHITE_EX + '%(asctime)s %(levelname)s ' + Fore.RESET + '%(message)s'
     logging.basicConfig(format=str_format, level=const.LOG_LEVEL)
+    #logging.basicConfig(format=str_format, level=const.LOG_LEVEL, filename="result.log")
 
     # Arguments
     # ---
@@ -103,7 +104,7 @@ if __name__ == "__main__":
 
     print()
     signal.signal(signal.SIGINT, signal_handler)
-    
+
     try:
         main(sys.argv[1:])
     finally:
