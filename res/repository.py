@@ -194,7 +194,10 @@ def display_extentions(data):
         ext_name = ext.oid._name
         ext_value = ext.value
         for value in ext_value.__dict__.keys():
-            logging.info("Header  | Cert. extensions : {} ({}, critical {}) {}".format(ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(getattr(ext_value, value))))
+            disp_value = getattr(ext_value, value)
+            if (type(disp_value) == bytes):
+                disp_value = binascii.hexlify(disp_value, ':')
+            logging.info("Header  | Cert. extensions : {} ({}, critical {}) {}".format(ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
 
 
 #
