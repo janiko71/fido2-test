@@ -16,9 +16,6 @@ import res.repository as repository
 import res.const as const
 
 
-global gkeys
-gkeys = []
-
 
 def get_token():
 
@@ -106,6 +103,7 @@ if __name__ == "__main__":
 
     print()
     signal.signal(signal.SIGINT, signal_handler)
+    
     try:
         main(sys.argv[1:])
     finally:
