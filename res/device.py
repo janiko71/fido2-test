@@ -343,8 +343,9 @@ def decode_jwt(data):
     # Key: userVerificationDetails
     # ---
     # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#widl-MetadataStatement-userVerificationDetails
+    #     https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-registry-v2.0-rd-20180702.html#user-verification-methods
     #
-    # A list of alternative VerificationMethodANDCombinations. Each of these entries is one alternative user verification method. Each of these alternative user verification 
+    # A LIST of alternative VerificationMethodANDCombinations. Each of these entries is one alternative user verification method. Each of these alternative user verification 
     # methods might itself be an "AND" combination of multiple modalities.
     # All effectively available alternative user verification methods must be properly specified here. A user verification method is considered effectively available if this 
     # method can be used to either:
@@ -354,7 +355,9 @@ def decode_jwt(data):
 
     device_key = 'userVerificationDetails'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        for mthd in device.get(device_key):
+            info = const.UserVerificationMethod(mthd)
+            logging.info(str_format.format(device_key, info))
 
     # Key: assertionScheme
     # ---

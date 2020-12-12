@@ -19,6 +19,7 @@ BAD_STATUS = {'NOT_FIDO_CERTIFIED','REVOKED','USER_VERIFICATION_BYPASS','ATTESTA
 
 # Formatting
 sep = " | "
+sep_and = " & "
 
 # Device constants
 
@@ -60,6 +61,8 @@ class UserVerificationMethod:
 
     # 
     # https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-registry-v2.0-rd-20180702.html#user-verification-methods
+    #
+    # Caution: it's a list of lists. 
     # 
 
     values = {
@@ -84,12 +87,20 @@ class UserVerificationMethod:
         res = ""
         found = False
 
-        for key in self.values.keys():
+        for auth in self.value:
 
-            if (self.value & eval(key)):
-                res += sep if found else ""
-                res += self.values[key]
-                found = True
+            # First, let's get the authentication method 
+            for key in self.values.keys():
+
+                if (auth['userVerification'] == eval(key)):
+                    res += sep_and if found else ""
+                    res += self.values[key]
+                    found = True
+
+            for item in auth:
+
+                if (item != 'userVerification'):
+                    res += " " + item + str(auth[item])
 
         return res
 
