@@ -10,6 +10,7 @@ from colorama import Fore, Back, Style
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+from cryptography.x509.extensions import Extension
 
 import res.const as const
 import res.device as device
@@ -78,7 +79,7 @@ def decode_jwt(data, token):
     logging.info("Header | Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(cert.signature, ':')))
     logging.info("Header | Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_algorithm_oid._name))
     logging.info("Header | Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_hash_algorithm.name))
-    logging.info("Header | Cert. extensions : " + Fore.LIGHTWHITE_EX + "{}".format(cert.extensions))
+    display_extentions(cert.extensions)
 
     '''
          crypto.verify(
@@ -94,16 +95,16 @@ def decode_jwt(data, token):
     raw_ca_cert = bytes('-----BEGIN CERTIFICATE-----\n' + x5c[1] + '\n-----END CERTIFICATE-----', 'UTF8')
     ca_cert = x509.load_pem_x509_certificate(raw_cert, default_backend())
 
-    logging.info("Header | CA Cert. issuer : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.issuer.rfc4514_string()))
-    logging.info("Header | CA Cert. subject : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.subject.rfc4514_string()))
-    logging.info("Header | CA Cert. serial number : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.serial_number))
-    logging.info("Header | CA Cert. not valid before : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.not_valid_before))
-    logging.info("Header | CA Cert. not valid after : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.not_valid_after))
-    logging.info("Header | CA Cert. version : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.version))
-    logging.info("Header | CA Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(ca_cert.signature, ':')))
-    logging.info("Header | CA Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.signature_algorithm_oid._name))
-    logging.info("Header | CA Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.signature_hash_algorithm.name))
-    logging.info("Header | CA Cert. extensions : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.extensions))
+    logging.info("Header  | CA Cert. issuer : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.issuer.rfc4514_string()))
+    logging.info("Header  | CA Cert. subject : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.subject.rfc4514_string()))
+    logging.info("Header  | CA Cert. serial number : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.serial_number))
+    logging.info("Header  | CA Cert. not valid before : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.not_valid_before))
+    logging.info("Header  | CA Cert. not valid after : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.not_valid_after))
+    logging.info("Header  | CA Cert. version : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.version))
+    logging.info("Header  | CA Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(ca_cert.signature, ':')))
+    logging.info("Header  | CA Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.signature_algorithm_oid._name))
+    logging.info("Header  | CA Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.signature_hash_algorithm.name))
+    display_extentions(cert.extensions)
 
     #
     # Decoding JWT Data
@@ -112,22 +113,22 @@ def decode_jwt(data, token):
     jd = jwt.decode(data, verify=False)
     entries = jd['entries']
 
-    logging.info("Data | no : " + Fore.LIGHTWHITE_EX + "{}".format(jd['no']))
-    logging.info("Data | Next update : " + Fore.LIGHTWHITE_EX + jd['nextUpdate'])
-    logging.info("Data | Nb of entries : " + Fore.LIGHTWHITE_EX + str(len(entries)))
+    logging.info("Data   | no : " + Fore.LIGHTWHITE_EX + "{}".format(jd['no']))
+    logging.info("Data   | Next update : " + Fore.LIGHTWHITE_EX + jd['nextUpdate'])
+    logging.info("Data   | Nb of entries : " + Fore.LIGHTWHITE_EX + str(len(entries)))
 
     for entry in entries:
 
-        logging.info("Data | --------------------------------------------------------------------")
+        logging.info("Data   | " + "-"*80)
         if ('aaid' in entry):
-            logging.info("Data | Entry aaid : " + Fore.LIGHTWHITE_EX + "{}".format(entry['aaid']))
+            logging.info("Data   | Entry aaid : " + Fore.LIGHTWHITE_EX + "{}".format(entry['aaid']))
         if ('url' in entry):
             device_url = entry['url']
-            logging.info("Data | Entry url : " + Fore.LIGHTWHITE_EX + "{}".format(entry['url']))
+            logging.info("Data   | Entry url : " + Fore.LIGHTWHITE_EX + "{}".format(entry['url']))
         if ('timeOfLastStatusChange' in entry):
-            logging.info("Data | Entry last status change : " + Fore.LIGHTWHITE_EX + "{}".format(entry['timeOfLastStatusChange']))
+            logging.info("Data   | Entry last status change : " + Fore.LIGHTWHITE_EX + "{}".format(entry['timeOfLastStatusChange']))
         if ('hash' in entry):
-            logging.info("Data | Entry hash : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')))
+            logging.info("Data   | Entry hash : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')))
         if ('statusReports' in entry):
             analyse_status_report(entry['statusReports'])
 
@@ -168,23 +169,32 @@ def analyse_status_report(data):
             color = Fore.LIGHTGREEN_EX
         elif (device_status in const.BAD_STATUS):
             color = Fore.LIGHTRED_EX
-        logging.info("Data | Most recent certif. status : " + color + "{}".format(certif['status']))
+        logging.info("Data   | Most recent certif. status : " + color + "{}".format(certif['status']))
 
     if ('effectiveDate' in most_recent.keys()):
-        logging.info("Data | Most recent certif. date : " + Fore.LIGHTWHITE_EX + "{}".format(certif['effectiveDate']))
+        logging.info("Data   | Most recent certif. date : " + Fore.LIGHTWHITE_EX + "{}".format(certif['effectiveDate']))
     if ('certificateNumber' in most_recent.keys()):
-        logging.info("Data | Most recent certif. number : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificateNumber']))
+        logging.info("Data   | Most recent certif. number : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificateNumber']))
     if ('certificate' in most_recent.keys()):
-        logging.info("Data | Most recent certif. certificate : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificate']))
+        logging.info("Data   | Most recent certif. certificate : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificate']))
     if ('certificationDescriptor' in most_recent.keys()):
-        logging.info("Data | Most recent certif. descriptor : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationDescriptor']))
+        logging.info("Data   | Most recent certif. descriptor : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationDescriptor']))
     if ('url' in most_recent.keys()):
-        logging.info("Data | Most recent certif. url : " + Fore.LIGHTWHITE_EX + "{}".format(certif['url']))
+        logging.info("Data   | Most recent certif. url : " + Fore.LIGHTWHITE_EX + "{}".format(certif['url']))
     if ('certificationRequirementsVersion' in most_recent.keys()):
-        logging.info("Data | Most recent certif. req.version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationRequirementsVersion']))
+        logging.info("Data   | Most recent certif. req.version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationRequirementsVersion']))
     if ('certificationPolicyVersion' in most_recent.keys()):
-        logging.info("Data | Most recent certif. policy version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationPolicyVersion']))
+        logging.info("Data   | Most recent certif. policy version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationPolicyVersion']))
     
+
+
+def display_extentions(data):
+
+    for ext in data:
+        ext_name = ext.oid._name
+        ext_value = ext.value
+        for value in ext_value.__dict__.keys():
+            logging.info("Header  | Cert. extensions : {} ({}, critical {}) {}".format(ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(getattr(ext_value, value))))
 
 
 #

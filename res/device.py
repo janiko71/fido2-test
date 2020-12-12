@@ -24,14 +24,14 @@ def read_jwt(url, token):
 
     try:
 
-        logging.info("     | Calling for device information : " + Fore.LIGHTWHITE_EX + "{}".format(curl_url))
+        logging.info("Device | Calling for device information : " + Fore.LIGHTWHITE_EX + "{}".format(curl_url))
         u = requests.get(curl_url, allow_redirects=True)
 
         status_code = u.status_code
         reason      = u.reason
         content     = u.content
-        logging.info("     | Device Status code : " + Fore.LIGHTWHITE_EX + "{} ({})".format(status_code, reason))
-        logging.info("     | Device Content lenght (encoded) : {} bytes".format(len(content)))
+        logging.info("Device | Device Status code : " + Fore.LIGHTWHITE_EX + "{} ({})".format(status_code, reason))
+        logging.info("Device | Device Content lenght (encoded) : {} bytes".format(len(content)))
 
         if (status_code == 200):
             # Got an answer, no problem
@@ -57,8 +57,8 @@ def decode_jwt(data):
     base64_bytes = base64.b64decode(data, '-_') # Some infos are strangely encoded...
     device = json.loads(base64_bytes)
 
-    str_format = "     | Device {} : " + Fore.LIGHTWHITE_EX + "{}"
-    str_format_green = "     | Device {} : " + Fore.LIGHTGREEN_EX + "{}"
+    str_format = "Device | {} : " + Fore.LIGHTWHITE_EX + "{}"
+    str_format_green = "Device | {} : " + Fore.LIGHTGREEN_EX + "{}"
 
     #
     # Displaying information
