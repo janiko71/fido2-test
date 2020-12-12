@@ -58,7 +58,7 @@ def decode_jwt(data):
     device = json.loads(base64_bytes)
 
     str_format = "     | Device {} : " + Fore.LIGHTWHITE_EX + "{}"
-    str_format_red = "     | " + Fore.LIGHTRED_EX + "Device {} : " + "{}"
+    str_format_green = "     | Device {} : " + Fore.LIGHTGREEN_EX + "{}"
 
     #
     # Displaying information
@@ -246,7 +246,7 @@ def decode_jwt(data):
 
     device_key = 'cryptoStrength'
     if (device_key in device):
-        logging.info(str_format_red.format(device_key, device.get(device_key)))
+        logging.info(str_format_green.format(device_key, device.get(device_key)))
 
 
     # Key: authenticationAlgorithm
@@ -385,7 +385,8 @@ def decode_jwt(data):
 
     device_key = 'attachmentHint'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        info = const.AuthenticatorAttachmentHints(device.get(device_key))
+        logging.info(str_format.format(device_key, info))
 
 
     # Key: attestationRootCertificates
