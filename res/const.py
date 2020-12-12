@@ -1,4 +1,10 @@
 import logging
+import binascii
+
+from colorama import Fore, Back, Style 
+
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 
 # colorama constants
 TERM_UNDERLINE = '\033[04m'
@@ -21,7 +27,9 @@ BAD_STATUS = {'NOT_FIDO_CERTIFIED','REVOKED','USER_VERIFICATION_BYPASS','ATTESTA
 sep = " | "
 sep_and = " & "
 
-# Device constants
+#
+# Device constants => Human-readable
+#
 
 class MatcherProtection:
 
@@ -325,4 +333,50 @@ class AuthenticatorAttestation:
     def __repr__(self):
 
         return str(self)
+
+
+
+
+
+def display_cert(logging, data):
+
+    for cert in data:
+
+        # Examine each certificate
+
+        raw_cert = bytes('-----BEGIN CERTIFICATE-----\n' + cert + '\n-----END CERTIFICATE-----', 'UTF8')
+        this_cert = x509.load_pem_x509_certificate(raw_cert, default_backend())
+
+        logging.info("Data    | Cert. issuer : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.issuer.rfc4514_string()))
+        logging.info("Data    | Cert. subject : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.subject.rfc4514_string()))
+        logging.info("Data    | Cert. serial number : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.serial_number))
+        logging.info("Data    | Cert. not valid before : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.not_valid_before))
+        logging.info("Data    | Cert. not valid after : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.not_valid_after))
+        logging.info("Data    | Cert. version : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.version))
+        logging.info("Data    | Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(this_cert.signature, ':')))
+        logging.info("Data    | Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.signature_algorithm_oid._name))
+        logging.info("Data    | Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.signature_hash_algorithm.name))        
+
+
+
+def display_extentions(logging, data):
+
+    for ext in data:
+        ext_name = ext.oid._name
+        ext_value = ext.value
+        for value in ext_value.__dict__.keys():
+            disp_value = getattr(ext_value, value)
+            if (type(disp_value) == bytes):
+                disp_value = binascii.hexlify(disp_value, ':')
+            logging.info("Header  | Cert. extensions : {} ({}, critical {}) {}".format(ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
+
+
+#
+# Hey guys, this is a module
+# 
+
+if __name__ == "__main__":
+
+    print("Don't ever call me, stupid!")
+    sys.exit(1)
 
