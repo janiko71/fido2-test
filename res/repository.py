@@ -9,7 +9,10 @@ import fido2
 from colorama import Fore, Back, Style 
 
 from cryptography import x509
+from cryptography import exceptions
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import asymmetric
 from cryptography.x509.extensions import Extension
 
 import res.const as const
@@ -81,13 +84,6 @@ def decode_jwt(data, token):
     logging.info("Header  | Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_hash_algorithm.name))
     const.display_extentions(logging, cert.extensions)
 
-    '''
-         crypto.verify(
-            self.ca.cert,
-            cert.signature,
-            cert.tbs_certificate_bytes,
-            'sha256') 
-    '''
     #
     # CA Certificate
     #
@@ -105,6 +101,14 @@ def decode_jwt(data, token):
     logging.info("Header  | CA Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.signature_algorithm_oid._name))
     logging.info("Header  | CA Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.signature_hash_algorithm.name))
     const.display_extentions(logging, cert.extensions)
+
+    # Does the X509 certificate match the CA certificate's public key?
+    ca_public_key = ca_cert.public_key()
+    try:
+        ca_public_key.verify(cert.signature, cert.tbs_certificate_bytes, asymmetric.ec.ECDSA(hashes.SHA256()))
+        print("ok")
+    except exceptions.InvalidSignature:
+        print("beurk!")
 
     #
     # Decoding JWT Data
@@ -141,7 +145,7 @@ def decode_jwt(data, token):
         device.decode_jwt(device_jwt)
 
     logging.info("Legal : " + Fore.LIGHTWHITE_EX + jd['legalHeader'][:100] + "...")
-
+ 
 
 def analyse_status_report(data):
 
@@ -187,6 +191,21 @@ def analyse_status_report(data):
         logging.info("Data    | Most recent certif. policy version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationPolicyVersion']))
     
 
+
+
+def verify_toc_signature():
+
+    #
+    # https://fidoalliance.org/metadata/
+    #
+    # How do I verify the digital signature in the TOC?
+    # - The root certificate from the FIDO Alliance is available at https://mds.fidoalliance.org/Root.cer
+    # - To validate the digital certificates used in the digital signature, the certificate revocation information is available in the form of CRLs at the following locations
+    # - http://mds.fidoalliance.org/Root.crl
+    # - http://mds.fidoalliance.org/CA-1.crl
+    #
+
+    return
 
 
 #
