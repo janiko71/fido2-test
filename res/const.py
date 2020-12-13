@@ -353,16 +353,17 @@ def display_cert_list(logging, data_type, cert_type, data_list):
 
 def display_cert(logging, data_type, cert_type, cert):
 
-    logging.debug("{:<7} | Certificate : " + Fore.LIGHTWHITE_EX + "{}".format(cert))
-    logging.info("{:<7} | Cert. issuer : " + Fore.LIGHTWHITE_EX + "{}".format(cert.issuer.rfc4514_string()))
-    logging.info("{:<7} | Cert. subject : " + Fore.LIGHTWHITE_EX + "{}".format(cert.subject.rfc4514_string()))
-    logging.info("{:<7} | Cert. serial number : " + Fore.LIGHTWHITE_EX + "{}".format(cert.serial_number))
-    logging.info("{:<7} | Cert. not valid before : " + Fore.LIGHTWHITE_EX + "{}".format(cert.not_valid_before))
-    logging.info("{:<7} | Cert. not valid after : " + Fore.LIGHTWHITE_EX + "{}".format(cert.not_valid_after))
-    logging.info("{:<7} | Cert. version : " + Fore.LIGHTWHITE_EX + "{}".format(cert.version))
-    logging.info("{:<7} | Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(cert.signature, ':')))
-    logging.info("{:<7} | Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_algorithm_oid._name))
-    logging.info("{:<7} | Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_hash_algorithm.name))        
+    str_format = "{:<7} | {} {} : " + Fore.LIGHTWHITE_EX + "{}"
+    logging.debug("{:<7} | {} : " + Fore.LIGHTWHITE_EX + "{}".format(data_type, cert_type, cert))
+    logging.info(str_format.format(data_type, cert_type, "issuer", cert.issuer.rfc4514_string()))
+    logging.info(str_format.format(data_type, cert_type, "subject", cert.subject.rfc4514_string()))
+    logging.info(str_format.format(data_type, cert_type, "serial number", cert.serial_number))
+    logging.info(str_format.format(data_type, cert_type, "not valid before", cert.not_valid_before))
+    logging.info(str_format.format(data_type, cert_type, "not valid after", cert.not_valid_after))
+    logging.info(str_format.format(data_type, cert_type, "version", cert.version))
+    logging.info(str_format.format(data_type, cert_type, "signature", binascii.hexlify(cert.signature, ':')))
+    logging.info(str_format.format(data_type, cert_type, "signature algo.", cert.signature_algorithm_oid._name))
+    logging.info(str_format.format(data_type, cert_type, "signature hash algo.", cert.signature_hash_algorithm.name))        
 
 
 
