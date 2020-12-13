@@ -402,7 +402,7 @@ def decode_jwt(data):
 
     device_key = 'attestationRootCertificates'
     if (device_key in device):
-        const.display_cert(logging, device.get(device_key))
+        const.display_cert_list(logging, "Device", "Cert.", device.get(device_key))
 
 
     # Key: attestationCertificateKeyIdentifiers

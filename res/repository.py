@@ -12,6 +12,7 @@ from cryptography import x509
 from cryptography import exceptions
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives import asymmetric
 from cryptography.x509.extensions import Extension
 
@@ -73,34 +74,18 @@ def decode_jwt(data, token):
     raw_cert = bytes('-----BEGIN CERTIFICATE-----\n' + x5c[0] + '\n-----END CERTIFICATE-----', 'UTF8')
     cert = x509.load_pem_x509_certificate(raw_cert, default_backend())
 
-    logging.info("Header  | Cert. issuer : " + Fore.LIGHTWHITE_EX + "{}".format(cert.issuer.rfc4514_string()))
-    logging.info("Header  | Cert. subject : " + Fore.LIGHTWHITE_EX + "{}".format(cert.subject.rfc4514_string()))
-    logging.info("Header  | Cert. serial number : " + Fore.LIGHTWHITE_EX + "{}".format(cert.serial_number))
-    logging.info("Header  | Cert. not valid before : " + Fore.LIGHTWHITE_EX + "{}".format(cert.not_valid_before))
-    logging.info("Header  | Cert. not valid after : " + Fore.LIGHTWHITE_EX + "{}".format(cert.not_valid_after))
-    logging.info("Header  | Cert. version : " + Fore.LIGHTWHITE_EX + "{}".format(cert.version))
-    logging.info("Header  | Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(cert.signature, ':')))
-    logging.info("Header  | Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_algorithm_oid._name))
-    logging.info("Header  | Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_hash_algorithm.name))
-    const.display_extentions(logging, cert.extensions)
+    const.display_cert(logging, "Header", "Cert.", cert)
+    const.display_extentions(logging, "header", "TOC cert", cert.extensions)
 
     #
     # CA Certificate
     #
 
     raw_ca_cert = bytes('-----BEGIN CERTIFICATE-----\n' + x5c[1] + '\n-----END CERTIFICATE-----', 'UTF8')
-    ca_cert = x509.load_pem_x509_certificate(raw_cert, default_backend())
+    ca_cert = x509.load_pem_x509_certificate(raw_ca_cert, default_backend())
 
-    logging.info("Header  | CA Cert. issuer : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.issuer.rfc4514_string()))
-    logging.info("Header  | CA Cert. subject : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.subject.rfc4514_string()))
-    logging.info("Header  | CA Cert. serial number : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.serial_number))
-    logging.info("Header  | CA Cert. not valid before : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.not_valid_before))
-    logging.info("Header  | CA Cert. not valid after : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.not_valid_after))
-    logging.info("Header  | CA Cert. version : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.version))
-    logging.info("Header  | CA Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(ca_cert.signature, ':')))
-    logging.info("Header  | CA Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.signature_algorithm_oid._name))
-    logging.info("Header  | CA Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(ca_cert.signature_hash_algorithm.name))
-    const.display_extentions(logging, cert.extensions)
+    const.display_cert(logging, "Header", "CA cert.", ca_cert)
+    const.display_extentions(logging, "header", "CA cert.", cert.extensions)
 
     # Does the X509 certificate match the CA certificate's public key?
     ca_public_key = ca_cert.public_key()

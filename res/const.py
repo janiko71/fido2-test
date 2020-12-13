@@ -338,28 +338,35 @@ class AuthenticatorAttestation:
 
 
 
-def display_cert(logging, data):
+def display_cert_list(logging, data_type, cert_type, data_list):
 
-    for cert in data:
+    for cert in data_list:
 
         # Examine each certificate
 
         raw_cert = bytes('-----BEGIN CERTIFICATE-----\n' + cert + '\n-----END CERTIFICATE-----', 'UTF8')
         this_cert = x509.load_pem_x509_certificate(raw_cert, default_backend())
 
-        logging.info("Data    | Cert. issuer : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.issuer.rfc4514_string()))
-        logging.info("Data    | Cert. subject : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.subject.rfc4514_string()))
-        logging.info("Data    | Cert. serial number : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.serial_number))
-        logging.info("Data    | Cert. not valid before : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.not_valid_before))
-        logging.info("Data    | Cert. not valid after : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.not_valid_after))
-        logging.info("Data    | Cert. version : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.version))
-        logging.info("Data    | Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(this_cert.signature, ':')))
-        logging.info("Data    | Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.signature_algorithm_oid._name))
-        logging.info("Data    | Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(this_cert.signature_hash_algorithm.name))        
+        display_cert(logging, data_type, cert_type, this_cert) 
 
 
 
-def display_extentions(logging, data):
+def display_cert(logging, data_type, cert_type, cert):
+
+    logging.debug("{:<7} | Certificate : " + Fore.LIGHTWHITE_EX + "{}".format(cert))
+    logging.info("{:<7} | Cert. issuer : " + Fore.LIGHTWHITE_EX + "{}".format(cert.issuer.rfc4514_string()))
+    logging.info("{:<7} | Cert. subject : " + Fore.LIGHTWHITE_EX + "{}".format(cert.subject.rfc4514_string()))
+    logging.info("{:<7} | Cert. serial number : " + Fore.LIGHTWHITE_EX + "{}".format(cert.serial_number))
+    logging.info("{:<7} | Cert. not valid before : " + Fore.LIGHTWHITE_EX + "{}".format(cert.not_valid_before))
+    logging.info("{:<7} | Cert. not valid after : " + Fore.LIGHTWHITE_EX + "{}".format(cert.not_valid_after))
+    logging.info("{:<7} | Cert. version : " + Fore.LIGHTWHITE_EX + "{}".format(cert.version))
+    logging.info("{:<7} | Cert. signature : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(cert.signature, ':')))
+    logging.info("{:<7} | Cert. signature algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_algorithm_oid._name))
+    logging.info("{:<7} | Cert. signature hash algo. : " + Fore.LIGHTWHITE_EX + "{}".format(cert.signature_hash_algorithm.name))        
+
+
+
+def display_extentions(logging, data_type, cert_type, data):
 
     for ext in data:
         ext_name = ext.oid._name
@@ -368,7 +375,7 @@ def display_extentions(logging, data):
             disp_value = getattr(ext_value, value)
             if (type(disp_value) == bytes):
                 disp_value = binascii.hexlify(disp_value, ':')
-            logging.info("Header  | Cert. extensions : {} ({}, critical {}) {}".format(ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
+            logging.info("{:<7} | {} extensions : {} ({}, critical {}) {}".format(data_type, cert_type, ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
 
 
 #
