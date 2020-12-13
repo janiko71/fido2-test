@@ -87,13 +87,21 @@ def decode_jwt(data, token):
     const.display_cert(logging, "Header", "CA cert.", ca_cert)
     const.display_extentions(logging, "header", "CA cert.", cert.extensions)
 
+    # 
     # Does the X509 certificate match the CA certificate's public key?
+    # --> We assume we have an Elliptic Curve Key and SHA256 hash
+    #
+
     ca_public_key = ca_cert.public_key()
     try:
         ca_public_key.verify(cert.signature, cert.tbs_certificate_bytes, asymmetric.ec.ECDSA(hashes.SHA256()))
-        print("ok")
+        logging.info("The signature of the TOC certificate is verified by to CA Certificate")
     except exceptions.InvalidSignature:
-        print("beurk!")
+        logging.error(Fore.LIGHTRED_EX + "*** ERROR : TOC certificate signature does not match the signature of the CA Certificate ***")
+        logging.error(Fore.LIGHTRED_EX + "*** ERROR : TOC certificate signature does not match the signature of the CA Certificate ***")
+        logging.error(Fore.LIGHTRED_EX + "*** ERROR : TOC certificate signature does not match the signature of the CA Certificate ***")
+        print(Fore.RESET + "Aborting...")
+        sys.exit(1)
 
     #
     # Decoding JWT Data
