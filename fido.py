@@ -75,8 +75,11 @@ def parse_args(argv):
     #
 
     parser = argparse.ArgumentParser(description="Read datas from FIDO2 repository")
-    parser.add_argument("-t", "--token", help="token used for FIDO2 repository API call")
-    parser.add_argument("-o", "--output", help="filename for the result (in JSON format)")
+    parser.add_argument("-t", "--token", help="Token used for FIDO2 repository API call")
+    parser.add_argument("-o", "--output", help="Filename for the result (in JSON format)")
+    parser.add_argument("-tt", "--test-toc", help="Filename for testing repository functions without API call")
+    parser.add_argument("-td", "--test-devices", help="Filename for testing devices functions without API call")
+    parser.add_argument("-l", "--log", help="Name of the log file. If not, all logs will be displayed.")
     args = parser.parse_args()
     logging.info(args)
     
@@ -93,11 +96,10 @@ def signal_handler(sig, frame):
 
 def main(argv):
 
-    # Set log options
-    # ---
+    # Logs options
     str_format = format=Fore.LIGHTWHITE_EX + '%(asctime)s %(levelname)s ' + Fore.RESET + '%(message)s'
     logging.basicConfig(format=str_format, level=const.LOG_LEVEL)
-    #logging.basicConfig(format=str_format, level=const.LOG_LEVEL, filename="result.log")
+    #logging.basicConfig(format=str_format, level=const.LOG_LEVEL, filename="logfile.txt")
 
     # Arguments
     # ---
@@ -119,23 +121,45 @@ def main(argv):
     else:
         filename = None
 
+
+    # Set log options
+    # ---
+    '''
+    if (logfile_name):
+        logging.basicConfig(format=str_format, level=const.LOG_LEVEL, filename="file.log")
+        print("All logs are written in " + logfile_name)
+    else:
+        logging.basicConfig(format=str_format, level=const.LOG_LEVEL)
+    '''
+
+    # If a "toc file" name is specified, we test without API Call (for the repository)
+    if (args.test_toc):
+        filename_test_toc = args.test_toc
+        logging.warning(Fore.LIGHTRED_EX + "Testing without repository API call: the repository will be retrieved from " + Fore.LIGHTWHITE_EX + filename_test_toc + Fore.RESET)
+    else:
+        filename_test_toc = None        
+
+    # If a "device file" name is specified, we test without API Call (for the all devices, we use the same file)
+    if (args.test_devices):
+        filename_test_devices = args.test_devices
+        logging.warning(Fore.LIGHTRED_EX + "Testing without device API call: the device information will be retrieved from " + Fore.LIGHTWHITE_EX + filename_test_devices + Fore.RESET)
+    else:
+        filename_test_devices = None    
+
     # GO!
     # ---
 
     logging.info("Line command arguments : " + str(argv))
 
-    raw_data = repository.read_fido2_jwt(token)
-    #
-    #--> For testing purpose, you can use a file instead of a real API call
-    #    Comment the previous line, uncomment below. To get a test file, call
-    #    the URL displayed in the logs, store the result in a file, and open
-    #    the file here.
-    #
-    '''    
-    with open("test.jwt","r") as f:
-        raw_data = f.read()
-    '''
-    repository.analyze_response(raw_data, token, filename)
+    if (filename_test_toc):
+        # Test mode
+        with open(filename_test_toc,"r") as f:
+            raw_data = f.read()
+    else:
+        # Real API call
+        raw_data = repository.read_fido2_jwt(token)
+
+    repository.analyze_response(raw_data, token, filename, filename_test_devices)
 
 
 

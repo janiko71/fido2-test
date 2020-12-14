@@ -50,7 +50,7 @@ def read_fido2_jwt(token):
         logging.error("Something very bad happened with the API call. " + str(err))
 
 
-def analyze_response(data, token, filename):
+def analyze_response(data, token, filename, filename_test_devices):
 
     #
     # Analyzing FIDO API response. If a filename is provided, the repository content will be written in JSON format.
@@ -146,17 +146,14 @@ def analyze_response(data, token, filename):
             analyse_status_report(entry['statusReports'])
 
         # NEXT STEP: Call URL with token, show information, verify certificate
-        device_jwt = device.read_jwt(device_url, token)
-        #
-        #--> For testing purpose, you can use a file instead of a real API call
-        #    Comment the previous line, uncomment below. To get a test file, call
-        #    the URL displayed in the logs, store the result in a file, and open
-        #    the file here. With lots of entries, tests are much quicker.
-        #
-        '''
-        with open("detail.jwt","r") as f:
-            device_jwt = f.read()
-        '''
+        if (filename_test_devices):
+            # Test mode
+            with open(filename_test_devices,"r") as f:
+                device_jwt = f.read()
+        else:
+            # Real API call
+            device_jwt = device.read_jwt(device_url, token)
+
         device_detail = device.analyze_device(device_jwt)
 
         entry['detail'] = device_detail
