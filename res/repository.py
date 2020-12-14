@@ -51,15 +51,27 @@ def read_fido2_jwt(token):
         logging.error("Something very bad happened with the API call. " + str(err))
 
 
-def decode_jwt(data, token):
+def analyze_response(data, token, filename):
+
+    #
+    # Analyzing FIDO API response. If a filename is provided, the repository content will be written in JSON format.
+    #
+
+    json_file_content = {}
+    if (filename):
+        logging.info("Found output argument, writing JSON result to " + Fore.LIGHTWHITE_EX + filename)
+    else:
+        logging.info("No arg for file output")
 
     #
     # Decoding JWT Header
     #
 
     jh = jwt.get_unverified_header(data)
-    logging.info("Header  | Algo : " + Fore.LIGHTWHITE_EX + "{}".format(jh['alg']))
-    logging.info("Header  | Type : " + Fore.LIGHTWHITE_EX + "{}".format(jh['typ']))
+    logging.info(const.str_format.format("Header", "Algo", jh['alg']))
+    logging.info(const.str_format.format("Header", "Type", jh['typ']))
+    if (filename):
+        json_file_content['header'] = jh
 
     # https://tools.ietf.org/html/rfc7515#page-11
     # The "x5c" (X.509 certificate chain) Header Parameter contains the X.509 public key certificate or certificate chain [RFC5280]
@@ -93,10 +105,14 @@ def decode_jwt(data, token):
     #
 
     ca_public_key = ca_cert.public_key()
+
     try:
+
         ca_public_key.verify(cert.signature, cert.tbs_certificate_bytes, asymmetric.ec.ECDSA(hashes.SHA256()))
         logging.info("The signature of the TOC certificate is verified by to CA Certificate")
+
     except exceptions.InvalidSignature:
+
         logging.error(Fore.LIGHTRED_EX + "*** ERROR : TOC certificate signature does not match the signature of the CA Certificate ***")
         logging.error(Fore.LIGHTRED_EX + "*** ERROR : TOC certificate signature does not match the signature of the CA Certificate ***")
         logging.error(Fore.LIGHTRED_EX + "*** ERROR : TOC certificate signature does not match the signature of the CA Certificate ***")
@@ -110,40 +126,61 @@ def decode_jwt(data, token):
     jd = jwt.decode(data, verify=False)
     entries = jd['entries']
 
-    logging.info("Data    | no : " + Fore.LIGHTWHITE_EX + "{}".format(jd['no']))
-    logging.info("Data    | Next update : " + Fore.LIGHTWHITE_EX + jd['nextUpdate'])
-    logging.info("Data    | Nb of entries : " + Fore.LIGHTWHITE_EX + str(len(entries)))
+    logging.info(const.str_format.format("Data", "no", jd['no']))
+    logging.info(const.str_format.format("Data", "Next update", jd['nextUpdate']))
+    logging.info(const.str_format.format("Data", "Nb of entries", str(len(entries))))
+    logging.info("Legal : " + Fore.LIGHTWHITE_EX + jd['legalHeader'][:300] + "...")
 
     for entry in entries:
 
         logging.info("Data    | " + "-"*80)
         if ('aaid' in entry):
-            logging.info("Data    | Entry aaid : " + Fore.LIGHTWHITE_EX + "{}".format(entry['aaid']))
+            logging.info(const.str_format.format("Data", "aaid", entry['aaid']))
         if ('url' in entry):
             device_url = entry['url']
-            logging.info("Data    | Entry url : " + Fore.LIGHTWHITE_EX + "{}".format(entry['url']))
+            logging.info(const.str_format.format("Data", "url", entry['url']))
         if ('timeOfLastStatusChange' in entry):
-            logging.info("Data    | Entry last status change : " + Fore.LIGHTWHITE_EX + "{}".format(entry['timeOfLastStatusChange']))
+            logging.info(const.str_format.format("Data", "Entry last status change", entry['timeOfLastStatusChange']))
         if ('hash' in entry):
-            logging.info("Data    | Entry hash : " + Fore.LIGHTWHITE_EX + "{}".format(binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')))
+            logging.info(const.str_format.format("Data", "Entry hash", binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')))
         if ('statusReports' in entry):
             analyse_status_report(entry['statusReports'])
 
         # NEXT STEP: Call URL with token, show information, verify certificate
         device_jwt = device.read_jwt(device_url, token)
+        #
+        #--> For testing purpose, you can use a file instead of a real API call
+        #    Comment the previous line, uncomment below. To get a test file, call
+        #    the URL displayed in the logs, store the result in a file, and open
+        #    the file here. With lots of entries, tests are much quicker.
+        #
         '''
         with open("detail.jwt","r") as f:
             device_jwt = f.read()
         '''
-        device.decode_jwt(device_jwt)
+        device_detail = device.analyze_device(device_jwt)
 
-    logging.info("Legal : " + Fore.LIGHTWHITE_EX + jd['legalHeader'][:100] + "...")
+        entry['detail'] = device_detail
+
+    # Now we add the device's details in the global JSON
+    if (filename):
+        json_file_content["entries"] = entries
+    
+    # 
+    # You asked for a file?
+    #
+
+    if (filename):
+
+        f = open(filename, "w", encoding="UTF8")
+        f.write(json.dumps(json_file_content))
+        f.close()
  
 
 def analyse_status_report(data):
 
     #
-    # Important part: analyzing status reports. May contain a list. We highlight the most recent.
+    # Important part: analyzing status reports. May contain a list. We display the most recent only.
     #
 
     last_date = None
@@ -166,24 +203,24 @@ def analyse_status_report(data):
             color = Fore.LIGHTGREEN_EX
         elif (device_status in const.BAD_STATUS):
             color = Fore.LIGHTRED_EX
-        logging.info("Data    | Most recent certif. status : " + color + "{}".format(certif['status']))
+        logging.info(const.str_format.format("Data", "Most recent certif. status", color + certif['status']))
 
     if ('effectiveDate' in most_recent.keys()):
-        logging.info("Data    | Most recent certif. date : " + Fore.LIGHTWHITE_EX + "{}".format(certif['effectiveDate']))
+        logging.info(const.str_format.format("Data", "Most recent certif. date", certif['effectiveDate']))
     if ('certificateNumber' in most_recent.keys()):
-        logging.info("Data    | Most recent certif. number : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificateNumber']))
+        logging.info(const.str_format.format("Data", "Most recent certif. number", certif['certificateNumber']))
     if ('certificate' in most_recent.keys()):
-        logging.info("Data    | Most recent certif. certificate : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificate']))
+        logging.info(const.str_format.format("Data", "Most recent certificate", certif['certificate']))
     if ('certificationDescriptor' in most_recent.keys()):
-        logging.info("Data    | Most recent certif. descriptor : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationDescriptor']))
+        logging.info(const.str_format.format("Data", "Most recent certif. descriptor", certif['certificationDescriptor']))
     if ('url' in most_recent.keys()):
-        logging.info("Data    | Most recent certif. url : " + Fore.LIGHTWHITE_EX + "{}".format(certif['url']))
+        logging.info(const.str_format.format("Data", "Most recent certif. url", certif['url']))
     if ('certificationRequirementsVersion' in most_recent.keys()):
-        logging.info("Data    | Most recent certif. req.version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationRequirementsVersion']))
+        logging.info(const.str_format.format("Data", "Most recent certif. req.version", certif['certificationRequirementsVersion']))
     if ('certificationPolicyVersion' in most_recent.keys()):
-        logging.info("Data    | Most recent certif. policy version : " + Fore.LIGHTWHITE_EX + "{}".format(certif['certificationPolicyVersion']))
+        logging.info(const.str_format.format("Data", "Most recent certif. policy version", certif['certificationPolicyVersion']))
     
-
+     
 
 
 def verify_toc_signature():

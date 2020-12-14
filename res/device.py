@@ -48,7 +48,7 @@ def read_jwt(url, token):
 
 
 
-def decode_jwt(data):
+def analyze_device(data):
 
     #
     # Decoding JWT Header. Just base64. No payload here.
@@ -56,9 +56,6 @@ def decode_jwt(data):
 
     base64_bytes = base64.b64decode(data, '-_') # Some infos are strangely encoded...
     device = json.loads(base64_bytes)
-
-    str_format = "Device  | {} : " + Fore.LIGHTWHITE_EX + "{}"
-    str_format_green = "Device  | {} : " + Fore.LIGHTGREEN_EX + "{}"
 
     #
     # Displaying information
@@ -81,7 +78,7 @@ def decode_jwt(data):
 
     device_key = 'aaid'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: aaguid
@@ -94,7 +91,7 @@ def decode_jwt(data):
 
     device_key = 'aaguid'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # key: description 
@@ -104,7 +101,7 @@ def decode_jwt(data):
 
     device_key = 'description'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # key: alternativeDescriptions 
@@ -114,7 +111,7 @@ def decode_jwt(data):
 
     device_key = 'alternativeDescriptions'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: isSecondFactorOnly
@@ -126,7 +123,7 @@ def decode_jwt(data):
 
     device_key = 'isSecondFactorOnly'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: operatingEnv
@@ -139,7 +136,7 @@ def decode_jwt(data):
 
     device_key = 'operatingEnv'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: verificationMethodDescriptor
@@ -152,7 +149,7 @@ def decode_jwt(data):
     device_key = 'verificationMethodDescriptor'
     if (device_key in device):
         info = const.UserVerificationMethod(device.get(device_key))
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: supportedExtensions
@@ -164,7 +161,7 @@ def decode_jwt(data):
 
     device_key = 'supportedExtensions'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: matcherProtection
@@ -178,7 +175,7 @@ def decode_jwt(data):
     device_key = 'matcherProtection'
     if (device_key in device):
         info = const.MatcherProtection(device.get(device_key))
-        logging.info(str_format.format(device_key, info))
+        logging.info(const.str_format.format("Device", device_key, info))
 
 
     # Key: protocolFamily
@@ -191,7 +188,7 @@ def decode_jwt(data):
 
     device_key = 'protocolFamily'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: upv
@@ -203,7 +200,7 @@ def decode_jwt(data):
 
     device_key = 'upv'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: isKeyRestricted
@@ -219,7 +216,7 @@ def decode_jwt(data):
 
     device_key = 'isKeyRestricted'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: keyProtection
@@ -232,7 +229,7 @@ def decode_jwt(data):
     device_key = 'keyProtection'
     if (device_key in device):
         info = const.KeyProtection(device.get(device_key))
-        logging.info(str_format.format(device_key, info))
+        logging.info(const.str_format.format("Device", device_key, info))
 
 
     # Key: cryptoStrength
@@ -259,7 +256,7 @@ def decode_jwt(data):
     device_key = 'authenticationAlgorithm'
     if (device_key in device):
         info = const.AuthenticationAlgorithms(device.get(device_key))
-        logging.info(str_format.format(device_key, info))
+        logging.info(const.str_format.format("Device", device_key, info))
 
 
     # Key: authenticationAlgorithms
@@ -273,7 +270,7 @@ def decode_jwt(data):
     device_key = 'authenticationAlgorithms'
     if (device_key in device):
         info = const.AuthenticationAlgorithms(device.get(device_key))
-        logging.info(str_format.format(device_key, info))
+        logging.info(const.str_format.format("Device", device_key, info))
 
 
     # Key: publicKeyAlgAndEncoding
@@ -286,7 +283,7 @@ def decode_jwt(data):
     device_key = 'publicKeyAlgAndEncoding'
     if (device_key in device):
         info = const.AuthenticationAlgorithms(device.get(device_key))
-        logging.info(str_format.format(device_key, info))
+        logging.info(const.str_format.format("Device", device_key, info))
 
 
     # Key: isFreshUserVerificationRequired
@@ -298,7 +295,7 @@ def decode_jwt(data):
 
     device_key = 'isFreshUserVerificationRequired'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: tcDisplay (transaction confirmation display)
@@ -312,7 +309,7 @@ def decode_jwt(data):
     device_key = 'tcDisplay'
     if (device_key in device):
         info = const.tcDisplay(device.get(device_key))
-        logging.info(str_format.format(device_key, info))
+        logging.info(const.str_format.format("Device", device_key, info))
 
 
     # Key: tcDisplayContentType
@@ -325,7 +322,7 @@ def decode_jwt(data):
 
     device_key = 'tcDisplayContentType'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: tcDisplayPNGCharacteristics
@@ -337,7 +334,7 @@ def decode_jwt(data):
 
     device_key = 'tcDisplayPNGCharacteristics'
     if (device_key in device):
-        logging.debug(str_format.format(device_key, device.get(device_key)))
+        logging.debug(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: userVerificationDetails
@@ -357,7 +354,7 @@ def decode_jwt(data):
     if (device_key in device):
         for mthd in device.get(device_key):
             info = const.UserVerificationMethod(mthd)
-            logging.info(str_format.format(device_key, info))
+            logging.info(const.str_format.format("Device", device_key, info))
 
     # Key: assertionScheme
     # ---
@@ -373,7 +370,7 @@ def decode_jwt(data):
 
     device_key = 'assertionScheme'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
     # Key: attachmentHint
     # ---
@@ -389,7 +386,7 @@ def decode_jwt(data):
     device_key = 'attachmentHint'
     if (device_key in device):
         info = const.AuthenticatorAttachmentHints(device.get(device_key))
-        logging.info(str_format.format(device_key, info))
+        logging.info(const.str_format.format("Device", device_key, info))
 
 
     # Key: attestationRootCertificates
@@ -414,7 +411,7 @@ def decode_jwt(data):
 
     device_key = 'attestationCertificateKeyIdentifiers'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
 
     # Key: attestationTypes
@@ -427,7 +424,7 @@ def decode_jwt(data):
     device_key = 'attestationTypes'
     if (device_key in device):
         info = const.AuthenticatorAttestation(device.get(device_key))
-        logging.info(str_format.format(device_key, info))
+        logging.info(const.str_format.format("Device", device_key, info))
 
 
     # Key: authenticatorVersion
@@ -439,7 +436,7 @@ def decode_jwt(data):
 
     device_key = 'authenticatorVersion'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
 
     # Key: icon
     # ---
@@ -451,9 +448,9 @@ def decode_jwt(data):
     device_key = 'icon'
     if (device_key in device):
         type = device.get(device_key).split(";")[0]
-        logging.info(str_format.format(device_key, "found (" + type + ")"))
+        logging.info(const.str_format.format("Device", device_key, "found (" + type + ")"))
     else:
-        logging.info(str_format.format(device_key, "not found"))
+        logging.info(const.str_format.format("Device", device_key, "not found"))
 
 
     # Key: legalHeader
@@ -466,7 +463,9 @@ def decode_jwt(data):
 
     device_key = 'legalHeader'
     if (device_key in device):
-        logging.info(str_format.format(device_key, device.get(device_key)[:100] + "..."))
+        logging.info(const.str_format.format("Device", device_key, device.get(device_key)[:300] + "..."))
+
+    return device
 
 
 

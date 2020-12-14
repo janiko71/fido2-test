@@ -71,6 +71,7 @@ def parse_args(argv):
 
     parser = argparse.ArgumentParser(description="Read datas from FIDO2 repository")
     parser.add_argument("-t", "--token", help="token used for FIDO2 repository API call")
+    parser.add_argument("-o", "--output", help="filename for the result (in JSON format)")
     args = parser.parse_args()
     logging.info(args)
     
@@ -107,17 +108,29 @@ def main(argv):
             logging.error("No token found. Aborting.")
             sys.exit(2) 
 
+    # If an output file is specified, the whole result will be copied (in JSON format)
+    if (args.output):
+        filename = args.output
+    else:
+        filename = None
+
     # GO!
     # ---
 
     logging.info("Line command arguments : " + str(argv))
 
     raw_data = repository.read_fido2_jwt(token)
-    '''
+    #
+    #--> For testing purpose, you can use a file instead of a real API call
+    #    Comment the previous line, uncomment below. To get a test file, call
+    #    the URL displayed in the logs, store the result in a file, and open
+    #    the file here.
+    #
+    '''    
     with open("test.jwt","r") as f:
         raw_data = f.read()
     '''
-    repository.decode_jwt(raw_data, token)
+    repository.analyze_response(raw_data, token, filename)
 
 
 
