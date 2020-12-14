@@ -1,5 +1,6 @@
 import logging
 import binascii
+import sys
 
 from colorama import Fore, Back, Style 
 
