@@ -3,7 +3,7 @@
 This program reads the FIDO repository. This repository contains all known FIDO devices with their certification status. This 
 program only aims at gathering all information for all devices, displaying them in a "human-readable" format.
 
-# How is works
+# How it works
 The first API call gets the TOC (Table Of Content) with references for all devices.
 
 Then, for each device, we call the API to get information about the device, especially the certification status
