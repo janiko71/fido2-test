@@ -35,7 +35,6 @@ import json
 import binascii, base64
 import argparse
 import requests, jwt
-import fido2
 
 from colorama import Fore, Back, Style 
 

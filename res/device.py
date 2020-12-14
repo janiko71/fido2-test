@@ -4,7 +4,6 @@ import json
 import binascii, base64
 import argparse
 import requests, jwt
-import fido2
 
 from colorama import Fore, Back, Style 
 
@@ -243,7 +242,7 @@ def analyze_device(data):
 
     device_key = 'cryptoStrength'
     if (device_key in device):
-        logging.info(str_format_green.format(device_key, device.get(device_key)))
+        logging.info(const.str_format_green.format("Device", device_key, device.get(device_key)))
 
 
     # Key: authenticationAlgorithm
