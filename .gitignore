@@ -1,0 +1,6 @@
+.vscode
+venv
+access_token
+*.jwt
+*.log
+res/__py*
