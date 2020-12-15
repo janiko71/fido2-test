@@ -149,12 +149,18 @@ def analyze_response(data, token, filename, filename_test_devices):
 
     jd = jwt.decode(data, verify=False)
     entries = jd['entries']
-    json_readable_data = []
+    json_readable_data = {}
 
     logging.info(const.str_format.format("Data", "no", jd['no']))
+    json_readable_data['no'] = jd['no']
     logging.info(const.str_format.format("Data", "Next update", jd['nextUpdate']))
+    json_readable_data['nextUpdate'] = jd['nextUpdate']
     logging.info(const.str_format.format("Data", "Nb of entries", str(len(entries))))
+    json_readable_data['no'] = str(len(entries))
     logging.info("Legal : " + Fore.LIGHTWHITE_EX + jd['legalHeader'][:300] + "...")
+    json_readable_data['legalHeader'] = jd['legalHeader']
+
+    json_readable_data['entries'] = []
 
     # 
     # For each device, we look for information and make them readable
@@ -164,20 +170,25 @@ def analyze_response(data, token, filename, filename_test_devices):
         json_readable_entry = {}
 
         logging.info("Data    | " + "-"*80)
+
         if ('aaid' in entry):
             logging.info(const.str_format.format("Data", "aaid", entry['aaid']))
             json_readable_entry['aaid'] = entry['aaid']
+            
         if ('url' in entry):
             device_url = entry['url']
             logging.info(const.str_format.format("Data", "url", entry['url']))
             json_readable_entry['url'] = entry['url']
+
         if ('timeOfLastStatusChange' in entry):
             logging.info(const.str_format.format("Data", "Entry last status change", entry['timeOfLastStatusChange']))
             json_readable_entry['timeOfLastStatusChange'] = entry['timeOfLastStatusChange']
+
         if ('hash' in entry):
             h = binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')
             logging.info(const.str_format.format("Data", "Entry hash", h))
             json_readable_entry['hash'] = str(h)
+            
         if ('statusReports' in entry):
             json_report = analyse_status_report(entry['statusReports'])
             json_readable_entry['statusReports'] = json_report
@@ -196,14 +207,15 @@ def analyze_response(data, token, filename, filename_test_devices):
         device_detail, readable_device_detail = device.analyze_device(device_jwt)
 
         entry['detail'] = device_detail
-        json_readable_data.append(json_readable_entry)
+        json_readable_entry['detail'] = readable_device_detail
+        json_readable_data['entries'].append(json_readable_entry)
         
 
     # Now we add the device's details in the global JSON
     if (filename):
         json_file_content["entries"] = entries
         json_readable_content['header'] = json_readable_header
-        json_readable_content['entries'] = json_readable_data
+        json_readable_content['payload'] = json_readable_data
     
     # 
     # You asked for a file?
@@ -213,12 +225,12 @@ def analyze_response(data, token, filename, filename_test_devices):
 
         # raw datas
         f = open(filename, "w", encoding="UTF8")
-        f.write(json.dumps(json_file_content))
+        f.write(json.dumps(json_file_content, indent=4))
         f.close()
 
         # readable datas
         f = open(filename + ".read", "w", encoding="UTF8")
-        f.write(json.dumps(json_readable_content))
+        f.write(json.dumps(json_readable_content, indent=4))
         f.close()
  
 

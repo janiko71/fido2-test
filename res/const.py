@@ -96,22 +96,12 @@ class UserVerificationMethod:
     def __str__(self):
 
         res = ""
-        found = False
 
-        for auth in self.value:
+        # First, let's get the authentication method 
+        for key in self.values.keys():
 
-            # First, let's get the authentication method 
-            for key in self.values.keys():
-
-                if (auth['userVerification'] == eval(key)):
-                    res += sep_and if found else ""
-                    res += self.values[key]
-                    found = True
-
-            for item in auth:
-
-                if (item != 'userVerification'):
-                    res += " " + item + str(auth[item])
+            if (self.value == eval(key)):
+                res = self.values[key]
 
         return res
 
