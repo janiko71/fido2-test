@@ -1,10 +1,9 @@
-import os, sys, logging
+import os, sys, logging, copy
 import signal
 import json
 import binascii, base64
 import argparse
 import requests, jwt
-import fido2
 
 from colorama import Fore, Back, Style 
 
@@ -56,6 +55,7 @@ def analyze_device(data):
 
     base64_bytes = base64.b64decode(data, '-_') # Some infos are strangely encoded...
     device = json.loads(base64_bytes)
+    readable_device = {}
 
     #
     # Displaying information
@@ -79,7 +79,8 @@ def analyze_device(data):
     device_key = 'aaid'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
+        readable_device[device_key] = device.get(device_key)
 
     # Key: aaguid
     # ---
@@ -92,7 +93,7 @@ def analyze_device(data):
     device_key = 'aaguid'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # key: description 
     # ---
@@ -102,7 +103,7 @@ def analyze_device(data):
     device_key = 'description'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # key: alternativeDescriptions 
     # ---
@@ -112,7 +113,7 @@ def analyze_device(data):
     device_key = 'alternativeDescriptions'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: isSecondFactorOnly
     # ---
@@ -124,7 +125,7 @@ def analyze_device(data):
     device_key = 'isSecondFactorOnly'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: operatingEnv
     # ---
@@ -137,20 +138,20 @@ def analyze_device(data):
     device_key = 'operatingEnv'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: verificationMethodDescriptor
     # ---
     # See https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-metadata-statement-v2.0-rd-20180702.html#verificationmethoddescriptor-dictionary
     #
-    # A descriptor for a specific base user verification method as implemented by the authenticator.
+    # A descriptor for a specific base user verification method as implemented by the authenticator. Should be an integer.
     # 
 
     device_key = 'verificationMethodDescriptor'
     if (device_key in device):
         info = const.UserVerificationMethod(device.get(device_key))
-        logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        logging.info(const.str_format.format("Device", device_key, info))
+        readable_device[device_key] = str(info)
 
     # Key: supportedExtensions
     # ---
@@ -162,7 +163,7 @@ def analyze_device(data):
     device_key = 'supportedExtensions'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: matcherProtection
     # ---
@@ -176,7 +177,7 @@ def analyze_device(data):
     if (device_key in device):
         info = const.MatcherProtection(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
-
+        readable_device[device_key] = str(info)
 
     # Key: protocolFamily
     # ---
@@ -189,7 +190,7 @@ def analyze_device(data):
     device_key = 'protocolFamily'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: upv
     # ---
@@ -201,7 +202,7 @@ def analyze_device(data):
     device_key = 'upv'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: isKeyRestricted
     # ---
@@ -217,7 +218,7 @@ def analyze_device(data):
     device_key = 'isKeyRestricted'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: keyProtection
     # ---
@@ -230,7 +231,7 @@ def analyze_device(data):
     if (device_key in device):
         info = const.KeyProtection(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
-
+        readable_device[device_key] = str(info)
 
     # Key: cryptoStrength
     # ---
@@ -243,8 +244,8 @@ def analyze_device(data):
 
     device_key = 'cryptoStrength'
     if (device_key in device):
-        logging.info(str_format_green.format(device_key, device.get(device_key)))
-
+        logging.info(const.str_format_green.format("Device", device_key, device.get(device_key)))
+        readable_device[device_key] = device.get(device_key)
 
     # Key: authenticationAlgorithm
     # ---
@@ -257,7 +258,7 @@ def analyze_device(data):
     if (device_key in device):
         info = const.AuthenticationAlgorithms(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
-
+        readable_device[device_key] = str(info)
 
     # Key: authenticationAlgorithms
     # ---
@@ -271,7 +272,7 @@ def analyze_device(data):
     if (device_key in device):
         info = const.AuthenticationAlgorithms(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
-
+        readable_device[device_key] = str(info)
 
     # Key: publicKeyAlgAndEncoding
     # ---
@@ -284,7 +285,7 @@ def analyze_device(data):
     if (device_key in device):
         info = const.AuthenticationAlgorithms(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
-
+        readable_device[device_key] = str(info)
 
     # Key: isFreshUserVerificationRequired
     # ---
@@ -296,7 +297,7 @@ def analyze_device(data):
     device_key = 'isFreshUserVerificationRequired'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: tcDisplay (transaction confirmation display)
     # ---
@@ -310,7 +311,7 @@ def analyze_device(data):
     if (device_key in device):
         info = const.tcDisplay(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
-
+        readable_device[device_key] = str(info)
 
     # Key: tcDisplayContentType
     # ---
@@ -323,7 +324,7 @@ def analyze_device(data):
     device_key = 'tcDisplayContentType'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: tcDisplayPNGCharacteristics
     # ---
@@ -335,7 +336,7 @@ def analyze_device(data):
     device_key = 'tcDisplayPNGCharacteristics'
     if (device_key in device):
         logging.debug(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: userVerificationDetails
     # ---
@@ -352,9 +353,34 @@ def analyze_device(data):
 
     device_key = 'userVerificationDetails'
     if (device_key in device):
-        for mthd in device.get(device_key):
-            info = const.UserVerificationMethod(mthd)
-            logging.info(const.str_format.format("Device", device_key, info))
+
+        readable_device[device_key] = []
+        user_verifications = device.get(device_key)
+
+        # We have an array of possibilities
+        for combination in user_verifications:
+
+            # Each element is one user verification method
+            verif_method = []
+
+            # Each verification method can have multiple verification modalities (fingerprint, fingerprint+password, etc)
+            for modality in combination:
+
+                readable_modality = {}
+
+                if ('userVerification' in modality):
+                    info = const.UserVerificationMethod(modality.get('userVerification'))
+                    readable_modality['userVerification'] = str(info)
+
+                # Each modality can have one 'userVerification' and optional fields
+                for field in modality.keys():
+                    if ('userVerification' != field):
+                        readable_modality[field] = modality.get(field)
+
+                verif_method.append(copy.deepcopy(readable_modality))
+                logging.info(const.str_format.format("Device", device_key, readable_modality))
+                
+            readable_device[device_key].append(copy.deepcopy(verif_method))
 
     # Key: assertionScheme
     # ---
@@ -371,6 +397,7 @@ def analyze_device(data):
     device_key = 'assertionScheme'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
+        readable_device[device_key] = device.get(device_key)
 
     # Key: attachmentHint
     # ---
@@ -387,7 +414,7 @@ def analyze_device(data):
     if (device_key in device):
         info = const.AuthenticatorAttachmentHints(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
-
+        readable_device[device_key] = str(info)
 
     # Key: attestationRootCertificates
     # ---
@@ -400,7 +427,7 @@ def analyze_device(data):
     device_key = 'attestationRootCertificates'
     if (device_key in device):
         const.display_cert_list(logging, "Device", "Cert.", device.get(device_key))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: attestationCertificateKeyIdentifiers
     # ---
@@ -412,7 +439,7 @@ def analyze_device(data):
     device_key = 'attestationCertificateKeyIdentifiers'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
-
+        readable_device[device_key] = device.get(device_key)
 
     # Key: attestationTypes
     # ---
@@ -425,7 +452,7 @@ def analyze_device(data):
     if (device_key in device):
         info = const.AuthenticatorAttestation(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
-
+        readable_device[device_key] = str(info)
 
     # Key: authenticatorVersion
     # ---
@@ -437,6 +464,7 @@ def analyze_device(data):
     device_key = 'authenticatorVersion'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
+        readable_device[device_key] = device.get(device_key)
 
     # Key: icon
     # ---
@@ -447,8 +475,8 @@ def analyze_device(data):
 
     device_key = 'icon'
     if (device_key in device):
-        type = device.get(device_key).split(";")[0]
-        logging.info(const.str_format.format("Device", device_key, "found (" + type + ")"))
+        icon_type = device.get(device_key).split(";")[0]
+        logging.info(const.str_format.format("Device", device_key, "found (" + icon_type + ")"))
     else:
         logging.info(const.str_format.format("Device", device_key, "not found"))
 
@@ -464,8 +492,9 @@ def analyze_device(data):
     device_key = 'legalHeader'
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)[:300] + "..."))
+        readable_device[device_key] = device.get(device_key)
 
-    return device
+    return device, readable_device
 
 
 

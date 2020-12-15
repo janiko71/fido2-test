@@ -4,7 +4,6 @@ import json
 import binascii, base64
 import argparse
 import requests, jwt
-import fido2
 
 from colorama import Fore, Back, Style 
 
@@ -51,13 +50,15 @@ def read_fido2_jwt(token):
         logging.error("Something very bad happened with the API call. " + str(err))
 
 
-def analyze_response(data, token, filename):
+def analyze_response(data, token, filename, filename_test_devices):
 
     #
     # Analyzing FIDO API response. If a filename is provided, the repository content will be written in JSON format.
     #
 
     json_file_content = {}
+    json_readable_content = {}
+
     if (filename):
         logging.info("Found output argument, writing JSON result to " + Fore.LIGHTWHITE_EX + filename)
     else:
@@ -68,10 +69,19 @@ def analyze_response(data, token, filename):
     #
 
     jh = jwt.get_unverified_header(data)
+    json_readable_header = {}
+
     logging.info(const.str_format.format("Header", "Algo", jh['alg']))
     logging.info(const.str_format.format("Header", "Type", jh['typ']))
+
     if (filename):
+        # raw data
         json_file_content['header'] = jh
+        # readable data
+        readable_json = {}
+        readable_json['alg'] = jh['alg']
+        readable_json['typ'] = jh['typ']
+        json_readable_header = readable_json
 
     # https://tools.ietf.org/html/rfc7515#page-11
     # The "x5c" (X.509 certificate chain) Header Parameter contains the X.509 public key certificate or certificate chain [RFC5280]
@@ -86,8 +96,16 @@ def analyze_response(data, token, filename):
     raw_cert = bytes('-----BEGIN CERTIFICATE-----\n' + x5c[0] + '\n-----END CERTIFICATE-----', 'UTF8')
     cert = x509.load_pem_x509_certificate(raw_cert, default_backend())
 
-    const.display_cert(logging, "Header", "Cert.", cert)
-    const.display_extentions(logging, "header", "TOC cert", cert.extensions)
+    readable_cert = const.display_cert(logging, "Header", "Cert.", cert)
+    readable_ext  = const.display_extentions(logging, "header", "TOC cert", cert.extensions)
+
+    if (filename):
+        # readable data
+        json_readable_header['x5c'] = {}
+        json_readable_header['x5c']['fido_cert'] = {}
+        json_readable_header['x5c']['fido_cert']['cert_info'] = readable_cert
+        json_readable_header['x5c']['fido_cert']['cert_extensions'] = readable_ext
+    
 
     #
     # CA Certificate
@@ -96,8 +114,14 @@ def analyze_response(data, token, filename):
     raw_ca_cert = bytes('-----BEGIN CERTIFICATE-----\n' + x5c[1] + '\n-----END CERTIFICATE-----', 'UTF8')
     ca_cert = x509.load_pem_x509_certificate(raw_ca_cert, default_backend())
 
-    const.display_cert(logging, "Header", "CA cert.", ca_cert)
-    const.display_extentions(logging, "header", "CA cert.", cert.extensions)
+    readable_cert = const.display_cert(logging, "Header", "CA cert.", ca_cert)
+    readable_ext  = const.display_extentions(logging, "header", "CA cert.", cert.extensions)
+
+    if (filename):
+        # readable data
+        json_readable_header['x5c']['ca_cert'] = {}
+        json_readable_header['x5c']['ca_cert']['cert_info'] = readable_cert
+        json_readable_header['x5c']['ca_cert']['cert_extensions'] = readable_ext
 
     # 
     # Does the X509 certificate match the CA certificate's public key?
@@ -125,46 +149,73 @@ def analyze_response(data, token, filename):
 
     jd = jwt.decode(data, verify=False)
     entries = jd['entries']
+    json_readable_data = {}
 
     logging.info(const.str_format.format("Data", "no", jd['no']))
+    json_readable_data['no'] = jd['no']
     logging.info(const.str_format.format("Data", "Next update", jd['nextUpdate']))
+    json_readable_data['nextUpdate'] = jd['nextUpdate']
     logging.info(const.str_format.format("Data", "Nb of entries", str(len(entries))))
+    json_readable_data['no'] = str(len(entries))
     logging.info("Legal : " + Fore.LIGHTWHITE_EX + jd['legalHeader'][:300] + "...")
+    json_readable_data['legalHeader'] = jd['legalHeader']
+
+    json_readable_data['entries'] = []
+
+    # 
+    # For each device, we look for information and make them readable
 
     for entry in entries:
 
+        json_readable_entry = {}
+
         logging.info("Data    | " + "-"*80)
+
         if ('aaid' in entry):
             logging.info(const.str_format.format("Data", "aaid", entry['aaid']))
+            json_readable_entry['aaid'] = entry['aaid']
+            
         if ('url' in entry):
             device_url = entry['url']
             logging.info(const.str_format.format("Data", "url", entry['url']))
+            json_readable_entry['url'] = entry['url']
+
         if ('timeOfLastStatusChange' in entry):
             logging.info(const.str_format.format("Data", "Entry last status change", entry['timeOfLastStatusChange']))
+            json_readable_entry['timeOfLastStatusChange'] = entry['timeOfLastStatusChange']
+
         if ('hash' in entry):
-            logging.info(const.str_format.format("Data", "Entry hash", binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')))
+            h = binascii.hexlify(bytes(entry['hash'], 'UTF8'), ':')
+            logging.info(const.str_format.format("Data", "Entry hash", h))
+            json_readable_entry['hash'] = str(h)
+            
         if ('statusReports' in entry):
-            analyse_status_report(entry['statusReports'])
+            json_report = analyse_status_report(entry['statusReports'])
+            json_readable_entry['statusReports'] = json_report
 
         # NEXT STEP: Call URL with token, show information, verify certificate
-        device_jwt = device.read_jwt(device_url, token)
-        #
-        #--> For testing purpose, you can use a file instead of a real API call
-        #    Comment the previous line, uncomment below. To get a test file, call
-        #    the URL displayed in the logs, store the result in a file, and open
-        #    the file here. With lots of entries, tests are much quicker.
-        #
-        '''
-        with open("detail.jwt","r") as f:
-            device_jwt = f.read()
-        '''
-        device_detail = device.analyze_device(device_jwt)
+        if (filename_test_devices):
+            # Test mode
+            with open(filename_test_devices,"r") as f:
+                device_jwt = f.read()
+        else:
+            # Real API call
+            device_jwt = device.read_jwt(device_url, token)
+
+        # Device detail analysis
+        # ---
+        device_detail, readable_device_detail = device.analyze_device(device_jwt)
 
         entry['detail'] = device_detail
+        json_readable_entry['detail'] = readable_device_detail
+        json_readable_data['entries'].append(json_readable_entry)
+        
 
     # Now we add the device's details in the global JSON
     if (filename):
         json_file_content["entries"] = entries
+        json_readable_content['header'] = json_readable_header
+        json_readable_content['payload'] = json_readable_data
     
     # 
     # You asked for a file?
@@ -172,8 +223,14 @@ def analyze_response(data, token, filename):
 
     if (filename):
 
+        # raw datas
         f = open(filename, "w", encoding="UTF8")
-        f.write(json.dumps(json_file_content))
+        f.write(json.dumps(json_file_content, indent=4))
+        f.close()
+
+        # readable datas
+        f = open(filename + ".read", "w", encoding="UTF8")
+        f.write(json.dumps(json_readable_content, indent=4))
         f.close()
  
 
@@ -185,6 +242,7 @@ def analyse_status_report(data):
 
     last_date = None
     most_recent = None
+    readable_report = {}
 
     for certif in data:
         
@@ -204,22 +262,37 @@ def analyse_status_report(data):
         elif (device_status in const.BAD_STATUS):
             color = Fore.LIGHTRED_EX
         logging.info(const.str_format.format("Data", "Most recent certif. status", color + certif['status']))
+        readable_report['status'] = certif['status']
 
     if ('effectiveDate' in most_recent.keys()):
         logging.info(const.str_format.format("Data", "Most recent certif. date", certif['effectiveDate']))
+        readable_report['effectiveDate'] = certif['effectiveDate']
+
     if ('certificateNumber' in most_recent.keys()):
         logging.info(const.str_format.format("Data", "Most recent certif. number", certif['certificateNumber']))
+        readable_report['certificateNumber'] = certif['certificateNumber']
+
     if ('certificate' in most_recent.keys()):
         logging.info(const.str_format.format("Data", "Most recent certificate", certif['certificate']))
+        readable_report['certificate'] = certif['certificate']
+
     if ('certificationDescriptor' in most_recent.keys()):
         logging.info(const.str_format.format("Data", "Most recent certif. descriptor", certif['certificationDescriptor']))
+        readable_report['certificationDescriptor'] = certif['certificationDescriptor']
+
     if ('url' in most_recent.keys()):
         logging.info(const.str_format.format("Data", "Most recent certif. url", certif['url']))
+        readable_report['url'] = certif['url']
+
     if ('certificationRequirementsVersion' in most_recent.keys()):
         logging.info(const.str_format.format("Data", "Most recent certif. req.version", certif['certificationRequirementsVersion']))
+        readable_report['certificationRequirementsVersion'] = certif['certificationRequirementsVersion']
+
     if ('certificationPolicyVersion' in most_recent.keys()):
         logging.info(const.str_format.format("Data", "Most recent certif. policy version", certif['certificationPolicyVersion']))
+        readable_report['certificationPolicyVersion'] = certif['certificationPolicyVersion']
     
+    return readable_report
      
 
 
