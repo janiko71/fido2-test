@@ -356,20 +356,44 @@ def display_cert_list(logging, data_type, cert_type, data_list):
 
 def display_cert(logging, data_type, cert_type, cert):
 
+    json_cert = {}
+
     logging.debug("{:<7} | {} : " + Fore.LIGHTWHITE_EX + "{}".format(data_type, cert_type, cert))
+
     logging.info(str_format.format(data_type, cert_type + "issuer", cert.issuer.rfc4514_string()))
+    json_cert['issuer'] = cert.issuer.rfc4514_string()
+
     logging.info(str_format.format(data_type, cert_type + "subject", cert.subject.rfc4514_string()))
+    json_cert['subject'] = cert.subject.rfc4514_string()
+
     logging.info(str_format.format(data_type, cert_type + "serial number", cert.serial_number))
+    json_cert['serial number'] = str(cert.serial_number)
+
     logging.info(str_format.format(data_type, cert_type + "not valid before", cert.not_valid_before))
+    json_cert['not valid before'] = str(cert.not_valid_before)
+
     logging.info(str_format.format(data_type, cert_type + "not valid after", cert.not_valid_after))
+    json_cert['not valid after'] = str(cert.not_valid_after)
+
     logging.info(str_format.format(data_type, cert_type + "version", cert.version))
+    json_cert['version'] = str(cert.version)
+
     logging.info(str_format.format(data_type, cert_type + "signature", binascii.hexlify(cert.signature, ':')))
+    json_cert['signature'] = str(binascii.hexlify(cert.signature, ':'))
+
     logging.info(str_format.format(data_type, cert_type + "signature algo.", cert.signature_algorithm_oid._name))
+    json_cert['signature algo.'] = cert.signature_algorithm_oid._name
+
     logging.info(str_format.format(data_type, cert_type + "signature hash algo.", cert.signature_hash_algorithm.name))        
+    json_cert['signature hash algo.'] = cert.signature_hash_algorithm.name
+
+    return json_cert
 
 
 
 def display_extentions(logging, data_type, cert_type, data):
+
+    json_ext = {}
 
     for ext in data:
         ext_name = ext.oid._name
@@ -379,7 +403,12 @@ def display_extentions(logging, data_type, cert_type, data):
             if (type(disp_value) == bytes):
                 disp_value = binascii.hexlify(disp_value, ':')
             logging.info("{:<7} | {} extensions : {} ({}, critical {}) {}".format(data_type, cert_type, ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
+            json_ext[ext.oid.dotted_string] = {}
+            json_ext[ext.oid.dotted_string]['name'] = ext_name
+            json_ext[ext.oid.dotted_string]['critical'] = ext.critical
+            json_ext[ext.oid.dotted_string][value[1:]] = str(disp_value)
 
+    return json_ext
 
 #
 # Hey guys, this is a module

@@ -57,6 +57,8 @@ def analyze_response(data, token, filename, filename_test_devices):
     #
 
     json_file_content = {}
+    json_readable_content = {}
+
     if (filename):
         logging.info("Found output argument, writing JSON result to " + Fore.LIGHTWHITE_EX + filename)
     else:
@@ -67,10 +69,19 @@ def analyze_response(data, token, filename, filename_test_devices):
     #
 
     jh = jwt.get_unverified_header(data)
+    json_readable_header = {}
+
     logging.info(const.str_format.format("Header", "Algo", jh['alg']))
     logging.info(const.str_format.format("Header", "Type", jh['typ']))
+
     if (filename):
+        # raw data
         json_file_content['header'] = jh
+        # readable data
+        readable_json = {}
+        readable_json['alg'] = jh['alg']
+        readable_json['typ'] = jh['typ']
+        json_readable_header = readable_json
 
     # https://tools.ietf.org/html/rfc7515#page-11
     # The "x5c" (X.509 certificate chain) Header Parameter contains the X.509 public key certificate or certificate chain [RFC5280]
@@ -85,8 +96,16 @@ def analyze_response(data, token, filename, filename_test_devices):
     raw_cert = bytes('-----BEGIN CERTIFICATE-----\n' + x5c[0] + '\n-----END CERTIFICATE-----', 'UTF8')
     cert = x509.load_pem_x509_certificate(raw_cert, default_backend())
 
-    const.display_cert(logging, "Header", "Cert.", cert)
-    const.display_extentions(logging, "header", "TOC cert", cert.extensions)
+    readable_cert = const.display_cert(logging, "Header", "Cert.", cert)
+    readable_ext  = const.display_extentions(logging, "header", "TOC cert", cert.extensions)
+
+    if (filename):
+        # readable data
+        json_readable_header['x5c'] = {}
+        json_readable_header['x5c']['fido_cert'] = {}
+        json_readable_header['x5c']['fido_cert']['cert_info'] = readable_cert
+        json_readable_header['x5c']['fido_cert']['cert_extensions'] = readable_ext
+    
 
     #
     # CA Certificate
@@ -95,8 +114,14 @@ def analyze_response(data, token, filename, filename_test_devices):
     raw_ca_cert = bytes('-----BEGIN CERTIFICATE-----\n' + x5c[1] + '\n-----END CERTIFICATE-----', 'UTF8')
     ca_cert = x509.load_pem_x509_certificate(raw_ca_cert, default_backend())
 
-    const.display_cert(logging, "Header", "CA cert.", ca_cert)
-    const.display_extentions(logging, "header", "CA cert.", cert.extensions)
+    readable_cert = const.display_cert(logging, "Header", "CA cert.", ca_cert)
+    readable_ext  = const.display_extentions(logging, "header", "CA cert.", cert.extensions)
+
+    if (filename):
+        # readable data
+        json_readable_header['x5c']['ca_cert'] = {}
+        json_readable_header['x5c']['ca_cert']['cert_info'] = readable_cert
+        json_readable_header['x5c']['ca_cert']['cert_extensions'] = readable_ext
 
     # 
     # Does the X509 certificate match the CA certificate's public key?
@@ -124,6 +149,7 @@ def analyze_response(data, token, filename, filename_test_devices):
 
     jd = jwt.decode(data, verify=False)
     entries = jd['entries']
+    json_readable_data = {}
 
     logging.info(const.str_format.format("Data", "no", jd['no']))
     logging.info(const.str_format.format("Data", "Next update", jd['nextUpdate']))
@@ -161,6 +187,8 @@ def analyze_response(data, token, filename, filename_test_devices):
     # Now we add the device's details in the global JSON
     if (filename):
         json_file_content["entries"] = entries
+        json_readable_content['header'] = json_readable_header
+        json_readable_content['data'] = json_readable_data
     
     # 
     # You asked for a file?
@@ -168,8 +196,14 @@ def analyze_response(data, token, filename, filename_test_devices):
 
     if (filename):
 
+        # raw datas
         f = open(filename, "w", encoding="UTF8")
         f.write(json.dumps(json_file_content))
+        f.close()
+
+        # readable datas
+        f = open(filename + ".read", "w", encoding="UTF8")
+        f.write(json.dumps(json_readable_content))
         f.close()
  
 
