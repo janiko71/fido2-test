@@ -353,24 +353,33 @@ def analyze_device(data):
 
     device_key = 'userVerificationDetails'
     if (device_key in device):
+
         readable_device[device_key] = []
         user_verifications = device.get(device_key)
+
         # We have an array of possibilities
         for combination in user_verifications:
+
             # Each element is one user verification method
             verif_method = []
+
             # Each verification method can have multiple verification modalities (fingerprint, fingerprint+password, etc)
             for modality in combination:
+
                 readable_modality = {}
+
                 if ('userVerification' in modality):
                     info = const.UserVerificationMethod(modality.get('userVerification'))
                     readable_modality['userVerification'] = str(info)
+
                 # Each modality can have one 'userVerification' and optional fields
                 for field in modality.keys():
                     if ('userVerification' != field):
                         readable_modality[field] = modality.get(field)
+
                 verif_method.append(copy.deepcopy(readable_modality))
                 logging.info(const.str_format.format("Device", device_key, readable_modality))
+                
             readable_device[device_key].append(copy.deepcopy(verif_method))
 
     # Key: assertionScheme
