@@ -90,7 +90,7 @@ else:
 
 server = Fido2Server({"id": "example1.com", "name": "Example RP"}, attestation="direct")
 
-user = {"id": b"user_id", "name": "A. User"}
+user = {"id": b"user_id", "name": "John Doe"}
 
 # Prepare parameters for makeCredential
 create_options, state = server.register_begin(
@@ -163,12 +163,6 @@ js['auth_data'] = js_auth_data
 
 print("New credential created!")
 
-print("CLIENT DATA:", client_data)
-print("ATTESTATION OBJECT:", attestation_object)
-print()
-print("CREDENTIAL DATA:", auth_data.credential_data)
-
-
 # Prepare parameters for getAssertion
 request_options, state = server.authenticate_begin(user_verification=uv)
 
@@ -220,6 +214,10 @@ server.authenticate_complete(
 
 print("Credential authenticated!")
 
-print("CLIENT DATA:", result_client_data)
-print()
-print("AUTHENTICATOR DATA:", assertion_response.auth_data)
+#
+# Now we need to verify device's cert with CA Root certificate from FIDO2 repository
+#
+
+with open("", "r", "UTF8") as f:
+    repository = json.load(f.read())
+#
