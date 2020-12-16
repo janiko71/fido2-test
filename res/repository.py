@@ -252,6 +252,7 @@ def analyse_status_report(data):
             this_date = certif['effectiveDate']
             if (this_date > last_date):
                 most_recent = certif
+                last_date = this_date
 
     if ('status' in most_recent.keys()):
         # https://fidoalliance.org/specs/fido-uaf-v1.2-rd-20171128/fido-metadata-service-v1.2-rd-20171128.html#authenticatorstatus-enum

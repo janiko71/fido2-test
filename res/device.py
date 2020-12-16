@@ -80,7 +80,6 @@ def analyze_device(data):
     if (device_key in device):
         logging.info(const.str_format.format("Device", device_key, device.get(device_key)))
         readable_device[device_key] = device.get(device_key)
-        readable_device[device_key] = device.get(device_key)
 
     # Key: aaguid
     # ---
@@ -309,7 +308,7 @@ def analyze_device(data):
 
     device_key = 'tcDisplay'
     if (device_key in device):
-        info = const.tcDisplay(device.get(device_key))
+        info = const.tc_display(device.get(device_key))
         logging.info(const.str_format.format("Device", device_key, info))
         readable_device[device_key] = str(info)
 

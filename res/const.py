@@ -20,7 +20,7 @@ FIDO_URL = "https://mds2.fidoalliance.org/"
 LOG_LEVEL = logging.INFO
 
 # FIDO STATUS
-GOOD_STATUS = {'FIDO_CERTIFIED','FIDO_CERTIFIED_L1','FIDO_CERTIFIED_L2','FIDO_CERTIFIED_L3','FIDO_CERTIFIED_L4','FIDO_CERTIFIED_L5','FIDO_CERTIFIED_L1'}
+GOOD_STATUS = {'FIDO_CERTIFIED','FIDO_CERTIFIED_L1','FIDO_CERTIFIED_L2','FIDO_CERTIFIED_L3','FIDO_CERTIFIED_L4','FIDO_CERTIFIED_L5'}
 BAD_STATUS = {'NOT_FIDO_CERTIFIED','REVOKED','USER_VERIFICATION_BYPASS','ATTESTATION_KEY_COMPROMISE','USER_KEY_REMOTE_COMPROMISE','USER_KEY_PHYSICAL_COMPROMISE'}
 
 
@@ -211,7 +211,7 @@ class AuthenticationAlgorithms:
 
 
 
-class tcDisplay:
+class tc_display:
 
     # 
     # https://fidoalliance.org/specs/fido-v2.0-rd-20180702/fido-registry-v2.0-rd-20180702.html#transaction-confirmation-display-types
@@ -262,7 +262,6 @@ class AuthenticatorAttachmentHints:
         '0x00000020': 'BLUETOOTH',
         '0x00000040': 'NETWORK',
         '0x00000080': 'READY',
-        '0x00000080': 'READY_STATE',
         '0x00000100': 'WIFI_DIRECT'
     }
 
@@ -348,7 +347,7 @@ def display_cert(logging, data_type, cert_type, cert):
 
     json_cert = {}
 
-    logging.debug("{:<7} | {} : " + Fore.LIGHTWHITE_EX + "{}".format(data_type, cert_type, cert))
+    logging.debug(str_format.format(data_type, cert_type, cert))
 
     logging.info(str_format.format(data_type, cert_type + "issuer", cert.issuer.rfc4514_string()))
     json_cert['issuer'] = cert.issuer.rfc4514_string()

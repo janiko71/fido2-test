@@ -97,7 +97,7 @@ def signal_handler(sig, frame):
 def main(argv):
 
     # Logs options
-    str_format = format=Fore.LIGHTWHITE_EX + '%(asctime)s %(levelname)s ' + Fore.RESET + '%(message)s'
+    str_format = Fore.LIGHTWHITE_EX + '%(asctime)s %(levelname)s ' + Fore.RESET + '%(message)s'
     logging.basicConfig(format=str_format, level=const.LOG_LEVEL)
     #logging.basicConfig(format=str_format, level=const.LOG_LEVEL, filename="logfile.txt")
 
@@ -120,17 +120,6 @@ def main(argv):
         filename = args.output
     else:
         filename = None
-
-
-    # Set log options
-    # ---
-    '''
-    if (logfile_name):
-        logging.basicConfig(format=str_format, level=const.LOG_LEVEL, filename="file.log")
-        print("All logs are written in " + logfile_name)
-    else:
-        logging.basicConfig(format=str_format, level=const.LOG_LEVEL)
-    '''
 
     # If a "toc file" name is specified, we test without API Call (for the repository)
     if (args.test_toc):

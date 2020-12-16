@@ -2,5 +2,11 @@
 venv
 access_token
 *.jwt
+*.json
+*.txt
+*.read
+*.bat
 *.log
 res/__py*
+.scannerwork/*
+target/*
