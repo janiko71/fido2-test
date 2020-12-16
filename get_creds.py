@@ -37,7 +37,7 @@ from fido2.hid import CtapHidDevice
 from fido2.client import Fido2Client, WindowsClient
 from fido2.server import Fido2Server
 from getpass import getpass
-import sys
+import sys, json, copy
 import ctypes
 
 try:
@@ -101,13 +101,59 @@ if use_prompt:
 
 result = client.make_credential(create_options["publicKey"], pin=pin)
 
+js = {}
+
 attestation_object = result[0]
 client_data = result[1]
+js_result_auth = {}
+js_result_auth['attestation_object'] = {}
+js_result_auth['attestation_object']['att_statement'] = {}
+js_result_auth['attestation_object']['att_statement']['alg'] = attestation_object.att_statement['alg']
+js_result_auth['attestation_object']['att_statement']['sig'] = str(attestation_object.att_statement['sig'])
+x5c = []
+for elem in attestation_object.att_statement['x5c']:
+    x5c.append(str(elem))
+js_result_auth['attestation_object']['att_statement']['x5c'] = copy.copy(x5c)
+js_result_auth['attestation_object']['data'] = str(attestation_object.data)
+js_result_auth['attestation_object']['auth_data'] = {}
+auth_data = attestation_object.auth_data
+js_result_auth['attestation_object']['auth_data']['counter'] = auth_data.counter
+js_result_auth['attestation_object']['auth_data']['extensions'] = auth_data.extensions
+js_result_auth['attestation_object']['auth_data']['flags'] = auth_data.flags
+js_result_auth['attestation_object']['auth_data']['credential_data'] = {}
+js_result_auth['attestation_object']['auth_data']['credential_data']['aaguid'] = str(auth_data.credential_data.aaguid)
+js_result_auth['attestation_object']['auth_data']['credential_data']['credential_id'] = str(auth_data.credential_data.credential_id)
+js_result_auth['attestation_object']['auth_data']['credential_data']['public_key'] = str(auth_data.credential_data.public_key)
+js_result_auth['attestation_object']['auth_data']['credential_data']['public_key_hash_algo'] = str(auth_data.credential_data.public_key._HASH_ALG)
+js_result_auth['attestation_object']['auth_data']['extensions'] = auth_data.extensions
+js_result_auth['attestation_object']['auth_data']['flags'] = auth_data.flags
+js_result_auth['attestation_object']['fmt'] = attestation_object.fmt
+js_result_auth['client_data'] = {}
+js_result_auth['client_data']['b64'] = client_data.b64
+js_result_auth['client_data']['challenge'] = str(client_data.challenge)
+js_result_auth['client_data']['data'] = client_data.data
+js_result_auth['client_data']['hash'] = str(client_data.hash)
+
+js['result_auth'] = js_result_auth
+
 # Complete registration
 auth_data = server.register_complete(
     state, client_data, attestation_object
 )
 credentials = [auth_data.credential_data]
+
+js_auth_data = {}
+js_auth_data['counter'] = auth_data.counter 
+js_auth_data['extensions'] = auth_data.extensions 
+js_auth_data['flags'] = auth_data.flags
+cred_data = auth_data.credential_data 
+js_auth_data['credential_data'] = {}
+js_auth_data['credential_data']['aaguid'] = str(cred_data.aaguid)
+js_auth_data['credential_data']['credential_id'] = str(cred_data.credential_id)
+js_auth_data['credential_data']['public_key'] = str(cred_data.public_key)
+js_auth_data['rp_id_hash'] = str(auth_data.rp_id_hash)
+
+js['auth_data'] = js_auth_data
 
 print("New credential created!")
 
@@ -128,6 +174,29 @@ selection = client.get_assertion(request_options["publicKey"], pin=pin)
 result_assertion_response = selection[0]  # There may be multiple responses, get the first.
 result_client_data = selection[1]
 assertion_response = result_assertion_response[0]
+js_assertion = {}
+js_assertion['attestation_response'] = {}
+js_assertion['attestation_response']['auth_data'] = {}
+js_assertion['attestation_response']['auth_data']['counter'] = assertion_response.auth_data.counter
+js_assertion['attestation_response']['auth_data']['credential_data'] = assertion_response.auth_data.credential_data
+js_assertion['attestation_response']['auth_data']['extensions'] = assertion_response.auth_data.extensions
+js_assertion['attestation_response']['auth_data']['flags'] = assertion_response.auth_data.flags
+js_assertion['attestation_response']['credential'] = str(assertion_response.credential)
+js_assertion['attestation_response']['data'] = str(assertion_response.data)
+js_assertion['attestation_response']['number_of_credentials'] = str(assertion_response.number_of_credentials)
+js_assertion['attestation_response']['signature'] = str(assertion_response.signature)
+js_assertion['attestation_response']['user'] = str(assertion_response.user)
+js_assertion['client_data'] = {}
+js_assertion['client_data']['b64'] = result_client_data.b64
+js_assertion['client_data']['challenge'] = str(result_client_data.challenge)
+js_assertion['client_data']['hash'] = str(result_client_data.hash)
+js_assertion['client_data']['data'] = result_client_data.data
+
+js['assertion'] = js_assertion
+
+f = open('donnees_echangees.txt','w')
+f.write(json.dumps(js, indent=4))
+f.close()
 
 print("USER ID:", assertion_response.user)
 print("Cred.ID:", assertion_response.credential)
