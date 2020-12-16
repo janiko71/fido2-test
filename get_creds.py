@@ -25,6 +25,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+# https://herrjemand.medium.com/verifying-fido2-responses-4691288c8770
+
 """
 Connects to the first FIDO device found (starts from USB, then looks into NFC),
 creates a new credential for it, and authenticates the credential.
@@ -37,8 +39,11 @@ from fido2.hid import CtapHidDevice
 from fido2.client import Fido2Client, WindowsClient
 from fido2.server import Fido2Server
 from getpass import getpass
-import sys, json, copy
+import sys, json, copy, binascii,uuid
 import ctypes
+
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
 
 try:
     from fido2.pcsc import CtapPcscDevice
@@ -109,10 +114,11 @@ js_result_auth = {}
 js_result_auth['attestation_object'] = {}
 js_result_auth['attestation_object']['att_statement'] = {}
 js_result_auth['attestation_object']['att_statement']['alg'] = attestation_object.att_statement['alg']
-js_result_auth['attestation_object']['att_statement']['sig'] = str(attestation_object.att_statement['sig'])
+js_result_auth['attestation_object']['att_statement']['sig'] = str(binascii.hexlify(attestation_object.att_statement['sig']))
 x5c = []
 for elem in attestation_object.att_statement['x5c']:
-    x5c.append(str(elem))
+    c = x509.load_der_x509_certificate(elem)
+    x5c.append(str(c.public_bytes(serialization.Encoding.PEM)))
 js_result_auth['attestation_object']['att_statement']['x5c'] = copy.copy(x5c)
 js_result_auth['attestation_object']['data'] = str(attestation_object.data)
 js_result_auth['attestation_object']['auth_data'] = {}
@@ -121,8 +127,8 @@ js_result_auth['attestation_object']['auth_data']['counter'] = auth_data.counter
 js_result_auth['attestation_object']['auth_data']['extensions'] = auth_data.extensions
 js_result_auth['attestation_object']['auth_data']['flags'] = auth_data.flags
 js_result_auth['attestation_object']['auth_data']['credential_data'] = {}
-js_result_auth['attestation_object']['auth_data']['credential_data']['aaguid'] = str(auth_data.credential_data.aaguid)
-js_result_auth['attestation_object']['auth_data']['credential_data']['credential_id'] = str(auth_data.credential_data.credential_id)
+js_result_auth['attestation_object']['auth_data']['credential_data']['aaguid'] = str(uuid.UUID(bytes=auth_data.credential_data.aaguid))
+js_result_auth['attestation_object']['auth_data']['credential_data']['credential_id'] = str(binascii.hexlify(auth_data.credential_data.credential_id))
 js_result_auth['attestation_object']['auth_data']['credential_data']['public_key'] = str(auth_data.credential_data.public_key)
 js_result_auth['attestation_object']['auth_data']['credential_data']['public_key_hash_algo'] = str(auth_data.credential_data.public_key._HASH_ALG)
 js_result_auth['attestation_object']['auth_data']['extensions'] = auth_data.extensions
@@ -130,7 +136,7 @@ js_result_auth['attestation_object']['auth_data']['flags'] = auth_data.flags
 js_result_auth['attestation_object']['fmt'] = attestation_object.fmt
 js_result_auth['client_data'] = {}
 js_result_auth['client_data']['b64'] = client_data.b64
-js_result_auth['client_data']['challenge'] = str(client_data.challenge)
+js_result_auth['client_data']['challenge'] = str(binascii.hexlify(client_data.challenge))
 js_result_auth['client_data']['data'] = client_data.data
 js_result_auth['client_data']['hash'] = str(client_data.hash)
 
@@ -148,10 +154,10 @@ js_auth_data['extensions'] = auth_data.extensions
 js_auth_data['flags'] = auth_data.flags
 cred_data = auth_data.credential_data 
 js_auth_data['credential_data'] = {}
-js_auth_data['credential_data']['aaguid'] = str(cred_data.aaguid)
-js_auth_data['credential_data']['credential_id'] = str(cred_data.credential_id)
+js_auth_data['credential_data']['aaguid'] = str(uuid.UUID(bytes=cred_data.aaguid))
+js_auth_data['credential_data']['credential_id'] = str(binascii.hexlify(cred_data.credential_id))
 js_auth_data['credential_data']['public_key'] = str(cred_data.public_key)
-js_auth_data['rp_id_hash'] = str(auth_data.rp_id_hash)
+js_auth_data['rp_id_hash'] = str(binascii.hexlify(auth_data.rp_id_hash))
 
 js['auth_data'] = js_auth_data
 
@@ -181,15 +187,16 @@ js_assertion['attestation_response']['auth_data']['counter'] = assertion_respons
 js_assertion['attestation_response']['auth_data']['credential_data'] = assertion_response.auth_data.credential_data
 js_assertion['attestation_response']['auth_data']['extensions'] = assertion_response.auth_data.extensions
 js_assertion['attestation_response']['auth_data']['flags'] = assertion_response.auth_data.flags
-js_assertion['attestation_response']['credential'] = str(assertion_response.credential)
+js_assertion['attestation_response']['credential_id'] = str(binascii.hexlify(assertion_response.credential['id']))
+js_assertion['attestation_response']['credential_type'] = str(assertion_response.credential['type'])
 js_assertion['attestation_response']['data'] = str(assertion_response.data)
 js_assertion['attestation_response']['number_of_credentials'] = str(assertion_response.number_of_credentials)
-js_assertion['attestation_response']['signature'] = str(assertion_response.signature)
+js_assertion['attestation_response']['signature'] = str(binascii.hexlify(assertion_response.signature))
 js_assertion['attestation_response']['user'] = str(assertion_response.user)
 js_assertion['client_data'] = {}
 js_assertion['client_data']['b64'] = result_client_data.b64
-js_assertion['client_data']['challenge'] = str(result_client_data.challenge)
-js_assertion['client_data']['hash'] = str(result_client_data.hash)
+js_assertion['client_data']['challenge'] = str(binascii.hexlify(result_client_data.challenge))
+js_assertion['client_data']['hash'] = str(binascii.hexlify(result_client_data.hash))
 js_assertion['client_data']['data'] = result_client_data.data
 
 js['assertion'] = js_assertion
