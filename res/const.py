@@ -391,11 +391,20 @@ def display_extentions(logging, data_type, cert_type, data):
             disp_value = getattr(ext_value, value)
             if (type(disp_value) == bytes):
                 disp_value = binascii.hexlify(disp_value, ':')
-            logging.info("{:<7} | {} extensions : {} ({}, critical {}) {}".format(data_type, cert_type, ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
+            if (type(ext_value) == x509.extensions.BasicConstraints) and (value.lower() == '_ca'):
+                disp_value = str(disp_value).upper()
+                value = value.upper()
+                logging.info("{:<7} | {} extensions : {} ({}, critical {}) {}".format(data_type, cert_type, ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
+            elif type(ext_value) == x509.extensions.KeyUsage:
+                if (disp_value):
+                    disp_value = str(disp_value)
+                    logging.info("{:<7} | {} extensions : {} ({}, critical {}) {}".format(data_type, cert_type, ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
+            else:
+                disp_value = str(disp_value)
+                logging.info("{:<7} | {} extensions : {} ({}, critical {}) {}".format(data_type, cert_type, ext_name, ext.oid.dotted_string, ext.critical, value[1:] + ":" + str(disp_value)))
             json_ext[ext.oid.dotted_string] = {}
             json_ext[ext.oid.dotted_string]['name'] = ext_name
             json_ext[ext.oid.dotted_string]['critical'] = ext.critical
-            json_ext[ext.oid.dotted_string][value[1:]] = str(disp_value)
 
     return json_ext
 

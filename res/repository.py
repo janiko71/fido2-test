@@ -162,6 +162,8 @@ def analyze_response(data, token, filename, filename_test_devices):
 
     json_readable_data['entries'] = []
 
+    sys.exit(0)
+
     # 
     # For each device, we look for information and make them readable
 
