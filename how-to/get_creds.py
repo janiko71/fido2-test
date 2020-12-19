@@ -44,6 +44,19 @@ import ctypes
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
+from json import JSONDecodeError
+
+def is_json(myjson):
+
+    #
+    # Tests if a string is a valid json or not
+
+    try:
+        json_object = json.loads(str(myjson))
+    except (TypeError, JSONDecodeError, ValueError) as e:
+        return False
+    return True
+
 
 try:
     from fido2.pcsc import CtapPcscDevice
@@ -120,7 +133,30 @@ for elem in attestation_object.att_statement['x5c']:
     c = x509.load_der_x509_certificate(elem)
     x5c.append(str(c.public_bytes(serialization.Encoding.PEM)))
 js_result_auth['attestation_object']['att_statement']['x5c'] = copy.copy(x5c)
-js_result_auth['attestation_object']['data'] = str(attestation_object.data)
+js_result_auth['attestation_object']['data'] = json.dumps(str(attestation_object.data))
+'''
+for elem in attestation_object.data:
+    d = attestation_object.data[elem]
+    if (is_json(d)):
+        js_result_auth['attestation_object']['data'][str(elem)] = d
+    else:
+        repr_elem = repr(elem)
+        str_elem = str(repr_elem)
+        js_result_auth['attestation_object']['data'][str_elem] = {}
+        if (repr_elem == "<KEY.ATT_STMT: 3>"):
+            for elem_stmt in d:
+                if (elem_stmt == "x5c"):
+                    js_result_auth['attestation_object']['data'][str_elem][str(elem_stmt)] = []
+                    for cert in d[elem_stmt]:
+                        elem_cert = x509.load_der_x509_certificate(cert)
+                        disp_cert = str(elem_cert.public_bytes(serialization.Encoding.PEM))
+                        js_result_auth['attestation_object']['data'][str_elem][str(elem_stmt)].append(disp_cert)
+                else:
+                    js_result_auth['attestation_object']['data'][str_elem][str(elem_stmt)] = d[elem_stmt]
+        else:
+            js_result_auth['attestation_object']['data'][str_elem] = d
+        js_result_auth['attestation_object']['data'][str(elem)] = str(d)
+'''
 js_result_auth['attestation_object']['auth_data'] = {}
 auth_data = attestation_object.auth_data
 js_result_auth['attestation_object']['auth_data']['counter'] = auth_data.counter
@@ -183,7 +219,15 @@ js_assertion['attestation_response']['auth_data']['extensions'] = assertion_resp
 js_assertion['attestation_response']['auth_data']['flags'] = assertion_response.auth_data.flags
 js_assertion['attestation_response']['credential_id'] = str(binascii.hexlify(assertion_response.credential['id']))
 js_assertion['attestation_response']['credential_type'] = str(assertion_response.credential['type'])
-js_assertion['attestation_response']['data'] = str(assertion_response.data)
+js_assertion['attestation_response']['data'] = json.dumps(str(assertion_response.data))
+'''
+for elem in assertion_response.data:
+    d = assertion_response.data[elem]
+    if (is_json(d)):
+        js_assertion['attestation_response']['data'][str(elem)] = d
+    else:
+        js_assertion['attestation_response']['data'][str(elem)] = str(d)
+'''
 js_assertion['attestation_response']['number_of_credentials'] = str(assertion_response.number_of_credentials)
 js_assertion['attestation_response']['signature'] = str(binascii.hexlify(assertion_response.signature))
 js_assertion['attestation_response']['user'] = str(assertion_response.user)
@@ -214,10 +258,3 @@ server.authenticate_complete(
 
 print("Credential authenticated!")
 
-#
-# Now we need to verify device's cert with CA Root certificate from FIDO2 repository
-#
-
-with open("", "r", "UTF8") as f:
-    repository = json.load(f.read())
-#

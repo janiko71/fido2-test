@@ -1,6 +1,7 @@
 import logging
 import binascii
 import sys
+import json
 
 from colorama import Fore, Back, Style 
 
@@ -329,7 +330,6 @@ class AuthenticatorAttestation:
 
 
 
-
 def display_cert_list(logging, data_type, cert_type, data_list):
 
     for cert in data_list:
@@ -341,6 +341,17 @@ def display_cert_list(logging, data_type, cert_type, data_list):
 
         display_cert(logging, data_type, cert_type, this_cert) 
 
+
+def is_json(myjson):
+
+    #
+    # Tests if a string is a valid json or not
+
+    try:
+        json_object = json.loads(myjson)
+    except ValueError as e:
+        return False
+    return True
 
 
 def display_cert(logging, data_type, cert_type, cert):
