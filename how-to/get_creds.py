@@ -133,7 +133,8 @@ for elem in attestation_object.att_statement['x5c']:
     c = x509.load_der_x509_certificate(elem)
     x5c.append(str(c.public_bytes(serialization.Encoding.PEM)))
 js_result_auth['attestation_object']['att_statement']['x5c'] = copy.copy(x5c)
-js_result_auth['attestation_object']['data'] = json.dumps(str(attestation_object.data))
+js_result_auth['attestation_object']['data'] = {}
+json_attestation_object_data = json.dumps(str(attestation_object.data))
 '''
 for elem in attestation_object.data:
     d = attestation_object.data[elem]
