@@ -55,8 +55,6 @@ def data_interpreter(k, v):
     else:
         str_key = repr(k)
 
-    print(type(v))
-
     if (isinstance(v, int)):
         return str_key, str(v)
     elif (isinstance(v, str)):
@@ -214,7 +212,8 @@ js_result_auth['attestation_object']['auth_data']['flags'] = auth_data.flags
 js_result_auth['attestation_object']['auth_data']['credential_data'] = {}
 js_result_auth['attestation_object']['auth_data']['credential_data']['aaguid'] = str(uuid.UUID(bytes=auth_data.credential_data.aaguid))
 js_result_auth['attestation_object']['auth_data']['credential_data']['credential_id'] = str(binascii.hexlify(auth_data.credential_data.credential_id))
-js_result_auth['attestation_object']['auth_data']['credential_data']['public_key'] = str(auth_data.credential_data.public_key)
+_,b = data_interpreter('public_key', auth_data.credential_data.public_key)
+js_result_auth['attestation_object']['auth_data']['credential_data']['public_key'] = b
 js_result_auth['attestation_object']['auth_data']['credential_data']['public_key_hash_algo'] = str(auth_data.credential_data.public_key._HASH_ALG)
 js_result_auth['attestation_object']['auth_data']['extensions'] = auth_data.extensions
 js_result_auth['attestation_object']['auth_data']['flags'] = auth_data.flags
@@ -241,7 +240,8 @@ cred_data = auth_data.credential_data
 js_auth_data['credential_data'] = {}
 js_auth_data['credential_data']['aaguid'] = str(uuid.UUID(bytes=cred_data.aaguid))
 js_auth_data['credential_data']['credential_id'] = str(binascii.hexlify(cred_data.credential_id))
-js_auth_data['credential_data']['public_key'] = str(cred_data.public_key)
+_,b = data_interpreter('public_key', cred_data.public_key)
+js_auth_data['credential_data']['public_key'] = b
 js_auth_data['rp_id_hash'] = str(binascii.hexlify(auth_data.rp_id_hash))
 
 js['auth_data'] = js_auth_data
@@ -268,14 +268,12 @@ js_assertion['attestation_response']['auth_data']['extensions'] = assertion_resp
 js_assertion['attestation_response']['auth_data']['flags'] = assertion_response.auth_data.flags
 js_assertion['attestation_response']['credential_id'] = str(binascii.hexlify(assertion_response.credential['id']))
 js_assertion['attestation_response']['credential_type'] = str(assertion_response.credential['type'])
-js_assertion['attestation_response']['data'] = str(assertion_response.data)
-f = open("assertion_response_data.txt", "w")
+#js_assertion['attestation_response']['data'] = str(assertion_response.data)
 s = {}
 for k,v in assertion_response.data.items():
     a,b = data_interpreter(k, v)
     s[a] = b
-f.write(json.dumps(s, indent=4))
-f.close()
+js_assertion['attestation_response']['data'] = s
 '''
 for elem in assertion_response.data:
     d = assertion_response.data[elem]
