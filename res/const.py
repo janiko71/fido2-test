@@ -419,6 +419,21 @@ def display_extentions(logging, data_type, cert_type, data):
 
     return json_ext
 
+
+def data_interpreter(k, v):
+
+    str_key = repr(k)
+
+    t = type(v)
+
+    if (t in {str, bytes}):
+        str_value = v
+    else:
+        str_value = str(v)
+
+    return str_key, str_value
+
+
 #
 # Hey guys, this is a module
 # 

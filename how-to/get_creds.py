@@ -36,6 +36,7 @@ On Windows, the native WebAuthn API will be used.
 from __future__ import print_function, absolute_import, unicode_literals
 
 from fido2.hid import CtapHidDevice
+from fido2.ctap2 import AuthenticatorData
 from fido2.client import Fido2Client, WindowsClient
 from fido2.server import Fido2Server
 from getpass import getpass
@@ -45,6 +46,48 @@ import ctypes
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from json import JSONDecodeError
+
+
+def data_interpreter(k, v):
+
+    if (isinstance(k, str)):
+        str_key = k
+    else:
+        str_key = repr(k)
+
+    print(type(v))
+
+    if (isinstance(v, int)):
+        return str_key, str(v)
+    elif (isinstance(v, str)):
+        return str_key, v
+    elif (isinstance(v, dict)):
+        s = {}
+        for cle, valeur in v.items():
+            a,b = data_interpreter(cle, valeur)
+            s[a] = b
+        return str_key, s
+    elif (isinstance(v, list)):
+        return str_key, str(v)
+    elif (isinstance(v, AuthenticatorData)):
+        # bad luck
+        s = {}
+        s['counter'] = v.counter
+        s['extensions'] = v.extensions
+        s['flags'] = v.flags
+        s['credential_data'] = {}
+        s['credential_data']['aaguid'] = str(v.credential_data.aaguid)
+        s['credential_data']['credential_id'] = str(v.credential_data.credential_id)
+        #s['credential_data']['public_key'] = json.dumps(v.credential_data.public_key)
+        _,b = data_interpreter('public_key', v.credential_data.public_key)
+        s['credential_data']['public_key'] = b
+        s['credential_data']['public_key']['ALGORITHM'] = v.credential_data.public_key.ALGORITHM
+        s['credential_data']['public_key']['HASH_ALG'] = v.credential_data.public_key._HASH_ALG.name
+        return str_key, s
+    elif (isinstance(v, bytes)):
+        return str_key, str(v)
+
+
 
 def is_json(myjson):
 
@@ -134,7 +177,12 @@ for elem in attestation_object.att_statement['x5c']:
     x5c.append(str(c.public_bytes(serialization.Encoding.PEM)))
 js_result_auth['attestation_object']['att_statement']['x5c'] = copy.copy(x5c)
 js_result_auth['attestation_object']['data'] = {}
-json_attestation_object_data = json.dumps(str(attestation_object.data))
+json_attestation_object_data = str(attestation_object.data)
+s = {}
+for k,v in attestation_object.data.items():
+    a,b = data_interpreter(k, v)
+    s[a] = b
+js_result_auth['attestation_object']['data'] = s
 '''
 for elem in attestation_object.data:
     d = attestation_object.data[elem]
@@ -220,7 +268,14 @@ js_assertion['attestation_response']['auth_data']['extensions'] = assertion_resp
 js_assertion['attestation_response']['auth_data']['flags'] = assertion_response.auth_data.flags
 js_assertion['attestation_response']['credential_id'] = str(binascii.hexlify(assertion_response.credential['id']))
 js_assertion['attestation_response']['credential_type'] = str(assertion_response.credential['type'])
-js_assertion['attestation_response']['data'] = json.dumps(str(assertion_response.data))
+js_assertion['attestation_response']['data'] = str(assertion_response.data)
+f = open("assertion_response_data.txt", "w")
+s = {}
+for k,v in assertion_response.data.items():
+    a,b = data_interpreter(k, v)
+    s[a] = b
+f.write(json.dumps(s, indent=4))
+f.close()
 '''
 for elem in assertion_response.data:
     d = assertion_response.data[elem]
