@@ -47,6 +47,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from json import JSONDecodeError
 
+import base64
 
 def data_interpreter(k, v):
 
@@ -66,7 +67,11 @@ def data_interpreter(k, v):
             s[a] = b
         return str_key, s
     elif (isinstance(v, list)):
-        return str_key, str(v)
+        s = []
+        for item in v:
+            _,b = data_interpreter('key', item)
+            s.append(b)
+        return str_key, s
     elif (isinstance(v, AuthenticatorData)):
         # bad luck
         s = {}
@@ -74,8 +79,8 @@ def data_interpreter(k, v):
         s['extensions'] = v.extensions
         s['flags'] = v.flags
         s['credential_data'] = {}
-        s['credential_data']['aaguid'] = str(v.credential_data.aaguid)
-        s['credential_data']['credential_id'] = str(v.credential_data.credential_id)
+        s['credential_data']['aaguid'] = str(uuid.UUID(bytes=v.credential_data.aaguid))
+        s['credential_data']['credential_id'] = str(binascii.hexlify(v.credential_data.credential_id))
         #s['credential_data']['public_key'] = json.dumps(v.credential_data.public_key)
         _,b = data_interpreter('public_key', v.credential_data.public_key)
         s['credential_data']['public_key'] = b
@@ -83,7 +88,8 @@ def data_interpreter(k, v):
         s['credential_data']['public_key']['HASH_ALG'] = v.credential_data.public_key._HASH_ALG.name
         return str_key, s
     elif (isinstance(v, bytes)):
-        return str_key, str(v)
+        str_val = base64.b64encode(v).decode()
+        return str_key, str_val
 
 
 

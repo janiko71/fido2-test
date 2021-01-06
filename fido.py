@@ -27,8 +27,6 @@ If you want to have an output file with all devices details, add -o argument.
 
 
 
-
-
 import os, sys, logging
 import signal
 import json

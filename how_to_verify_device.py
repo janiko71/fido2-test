@@ -27,10 +27,11 @@ logging.basicConfig(format=str_format_base, level=const.LOG_LEVEL)
 # Now we need to verify device's cert with CA Root certificate from FIDO2 repository
 #
 
-with open("repository.txt", "r") as f:
+with open("repository.txt.read", "r") as f:
     raw_repository = f.read()
 #
-repository = json.loads(raw_repository)
+repository_full = json.loads(raw_repository)
+repository = repository_full['payload']
 
 
 with open("donnees_echangees.txt", "r") as f:
@@ -45,12 +46,14 @@ const.display_cert(logging, "Device", "Device cert.", device_cert)
 cert_algo = device_cert.signature_algorithm_oid._name.upper()
 
 for entry in repository['entries']:
-    if ('aaguid' in entry.keys()):
-        repo_aaguid = entry['aaguid']
+    detail = entry['detail']
+    report = entry['statusReports']
+    if ('aaguid' in detail.keys()):
+        repo_aaguid = detail['aaguid']
         if (aaguid == repo_aaguid):
 
             # Match!
-            root_ca_list = entry['detail']['attestationRootCertificates']
+            root_ca_list = detail['attestationRootCertificates']
             first_root_ca = bytes('-----BEGIN CERTIFICATE-----\n' + root_ca_list[0] + '\n-----END CERTIFICATE-----', 'UTF8')
             root_ca = x509.load_pem_x509_certificate(first_root_ca)
             ca_cert_algo = root_ca.signature_algorithm_oid._name.upper()
@@ -58,6 +61,7 @@ for entry in repository['entries']:
             const.display_cert(logging, "Device", "CA Root Cert.", root_ca)
 
             ca_public_key = root_ca.public_key()
+            valid_device = False
 
             try:
 
@@ -74,6 +78,7 @@ for entry in repository['entries']:
                                         padding_provider,
                                         cert_sign_algo)
                     logging.info(const.str_format_green.format("Device", "Cert. signature validation", "OK (Good signature)"))
+                    valid_device = True
 
                 if isinstance(ca_public_key, openssl.ec._EllipticCurvePublicKey):
 
@@ -85,7 +90,36 @@ for entry in repository['entries']:
 
                     ca_public_key.verify(device_cert.signature, device_cert.tbs_certificate_bytes, cert_sign_algo)
                     logging.info(const.str_format_green.format("Device", "Cert. signature validation", "Good signature for this EDCSA certificate"))
+                    valid_device = True
 
             except exceptions.InvalidSignature as eis:
 
-                logging.error(const.str_format_red.format(data_type, "Cert. signature validation", "FAILED (Invalid Signature)"))
+                logging.error(const.str_format_red.format("Device", "Cert. signature validation", "FAILED (Invalid Signature)"))
+
+            if (valid_device):
+
+                logging.info(const.str_format.format("Report", "Certification level", report['status']))
+                logging.info(const.str_format.format("Report", "Certification status date", report['effectiveDate']))
+                logging.info(const.str_format.format("Report", "Certificate number", report['certificateNumber']))
+                logging.info(const.str_format.format("Report", "Certification descriptor", report['certificationDescriptor']))
+                logging.info(const.str_format.format("Report", "Certification url", report['url']))
+                logging.info(const.str_format.format("Report", "Certification req. version", report['certificationRequirementsVersion']))
+                logging.info(const.str_format.format("Report", "Certification policy version", report['certificationPolicyVersion']))
+                logging.info(const.str_format.format("Detail", "Device description", detail['description']))
+                logging.info(const.str_format.format("Detail", "Second factor only", detail['isSecondFactorOnly']))
+                logging.info(const.str_format.format("Detail", "Device description", detail['operatingEnv']))
+                logging.info(const.str_format.format("Detail", "Matcher protection", detail['matcherProtection']))
+                logging.info(const.str_format.format("Detail", "Protocol family", detail['protocolFamily']))
+                logging.info(const.str_format.format("Detail", "Key protection", detail['keyProtection']))
+                logging.info(const.str_format.format("Detail", "Crypto strength", detail['cryptoStrength']))
+                logging.info(const.str_format.format("Detail", "Authentication algorithm", detail['authenticationAlgorithm']))
+                logging.info(const.str_format.format("Detail", "Aauthentication algorithms", detail['authenticationAlgorithms']))
+                logging.info(const.str_format.format("Detail", "Public key algo and encoding", detail['publicKeyAlgAndEncoding']))
+                logging.info(const.str_format.format("Detail", "tcDisplay", detail['tcDisplay']))
+                logging.info(const.str_format.format("Detail", "Assertion scheme", detail['assertionScheme']))
+                logging.info(const.str_format.format("Detail", "Attachment hint", detail['attachmentHint']))
+                logging.info(const.str_format.format("Detail", "Attestation types", detail['attestationTypes']))
+                logging.info(const.str_format.format("Detail", "Authenticator version", detail['authenticatorVersion']))
+                logging.info(const.str_format.format("Detail", "Legal header", detail['legalHeader']))
+
+
